@@ -11,8 +11,8 @@ class LogConsole(scrolledtext.ScrolledText):
             state="disabled",
             font=("Segoe UI", 10),
             wrap="word",
-            bg="#111827",
-            fg="#F9FAFB",
+            bg="#1f2937",
+            fg="#f8fafc",
             insertbackground="#F9FAFB",
         )
 

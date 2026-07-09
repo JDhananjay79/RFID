@@ -2,8 +2,10 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 import ttkbootstrap as ttkb
+from pathlib import Path
 from PIL import Image, ImageTk
 from event_logger import write_log, LogConsole
+import ttkbootstrap as ttk
 
 
 class UI:
@@ -13,12 +15,12 @@ class UI:
         self.name = name
 
 
-root = ttkb.Window(themename="superhero")
+root = ttkb.Window(themename="darkly")
 root.geometry("1280x760")
 root.minsize(1150, 700)
 root.title("RFID Communicator")
 
-style = ttkb.Style(theme="superhero")
+style = ttkb.Style(theme="darkly")
 style.configure("Card.TFrame", background="#223446")
 style.configure("Title.TLabel", font=("Segoe UI", 22, "bold"), foreground="#F8FAFC")
 style.configure("Section.TLabel", font=("Segoe UI", 11, "bold"), foreground="#E2E8F0")
@@ -28,10 +30,17 @@ style.configure("Log.TFrame", background="#111827")
 main_frame = ttkb.Frame(root)
 main_frame.pack(fill="both", expand=True)
 
+BASE_DIR = Path(__file__).resolve().parent
+icon_path = BASE_DIR.parent / "assets" / "Acc_logo.ico"
+
+root.iconbitmap(str(icon_path))
+
+
 header_frame = ttkb.Frame(main_frame)
 header_frame.pack(fill="x", pady=(0, 15))
 
-logo_path = "logo.png"
+BASE_DIR = Path(__file__).resolve().parent
+logo_path = BASE_DIR.parent / "Acc_logo.png"
 photo = None
 if os.path.exists(logo_path):
     image = Image.open(logo_path)
@@ -41,7 +50,7 @@ if os.path.exists(logo_path):
 if photo:
     logo_label = ttkb.Label(header_frame, image=photo, bootstyle="light")
     logo_label.image = photo
-    logo_label.pack(side="left", padx=(0, 15))
+    logo_label.pack(side="left", padx=(15, 20), pady=(20,20))
 
 header_text = ttkb.Label(header_frame, text="RFID Tag Writer", style="Title.TLabel")
 header_text.pack(side="left", pady=10)
@@ -52,13 +61,13 @@ content_frame.pack(fill="both", expand=True)
 form_container = tk.LabelFrame(
     content_frame,
     text="Tag Data",
-    padx=16,
-    pady=16,
+    padx=20,
+    pady=20,
     bg="#1f2937",
     fg="#f8fafc",
     font=("Segoe UI", 12, "bold"),
 )
-form_container.pack(side="left", fill="both", expand=True, padx=(0, 15))
+form_container.pack(side="left", fill="both", expand=True, padx=(10, 20), pady=(0, 10))
 
 form_grid = ttkb.Frame(form_container)
 form_grid.pack(fill="both", expand=True)
@@ -98,19 +107,21 @@ def TagDataForm():
     serial = field_vars["serial"].get()
     cert = field_vars["cert"].get()
     gvm = field_vars["gvm"].get()
-    vin_stor = field_vars["vin"].get()
+    vin_store = field_vars["vin"].get()
     reg = field_vars["registration"].get()
     axle = field_vars["axle"].get()
     insurance = field_vars["insurance"].get()
 
-    if all([tag_id, serial, cert, gvm, vin_stor, reg, axle, insurance]):
+    if all([tag_id, serial, cert, gvm, vin_store, reg, axle, insurance]):
         messagebox.showinfo("Status", "Data Submitted")
     else:
         messagebox.showinfo("Error", "Please fill all the fields")
 
 
-submit_button = ttkb.Button(button_row, text="Submit", command=TagDataForm, bootstyle="success-outline")
-submit_button.pack(side="left")
+submit_button = ttkb.Button(
+    button_row, text="Submit", command=TagDataForm, bootstyle="success-outline"
+)
+submit_button.pack(side="right", pady=(0, 330))
 
 right_panel = ttkb.Frame(content_frame)
 right_panel.pack(side="right", fill="y")
@@ -118,15 +129,16 @@ right_panel.pack(side="right", fill="y")
 controls_frame = tk.LabelFrame(
     right_panel,
     text="Controls",
-    padx=12,
-    pady=12,
+    padx=(12),
+    pady=(12),
     bg="#1f2937",
     fg="#f8fafc",
     font=("Segoe UI", 11, "bold"),
 )
-controls_frame.pack(fill="x", pady=(0, 12))
+controls_frame.pack(fill="x", padx=(0, 10), pady=(0, 20))
 
 search_var = tk.StringVar()
+
 
 def search():
     write_log(f"Searching VIN: {search_var.get()}")
@@ -148,11 +160,14 @@ search_button.pack(side="right")
 
 selected_option = tk.StringVar(value="Choose Medium")
 
+
 def on_select(event):
     write_log(f"Selected medium: {selected_option.get()}")
 
 
-medium_label = ttkb.Label(controls_frame, text="Select data transmit medium", style="Section.TLabel")
+medium_label = ttkb.Label(
+    controls_frame, text="Select Data Transmit Medium", style="Section.TLabel"
+)
 medium_label.pack(anchor="w", pady=(12, 6))
 
 dropdown = ttkb.Combobox(
