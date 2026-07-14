@@ -28,3 +28,4 @@ def write_log(message, log_box=None):
     if log_box is None:
         return
     log_box.append(message)
+
