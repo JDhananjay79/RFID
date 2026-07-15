@@ -6,7 +6,17 @@ from pathlib import Path
 from PIL import Image, ImageTk
 from event_logger import write_log, LogConsole
 import ttkbootstrap as ttk
+from serial_port import SerialReader
 
+# -----------------------------
+# Serial Configuration
+# -----------------------------
+PORT = "COM6"  # Change as needed
+BAUDRATE = 115200
+logging_enabled = False
+
+reader = SerialReader(PORT, BAUDRATE)
+reader.connect()
 
 class UI:
     def __init__(self, master, value, name):
@@ -16,8 +26,8 @@ class UI:
 
 
 root = ttkb.Window(themename="darkly")
-root.geometry("1280x760")
-root.minsize(1150, 700)
+root.geometry("2000x900")
+root.minsize(1300, 900)
 root.title("RFID Communicator")
 
 style = ttkb.Style(theme="darkly")
@@ -50,7 +60,7 @@ if os.path.exists(logo_path):
 if photo:
     logo_label = ttkb.Label(header_frame, image=photo, bootstyle="light")
     logo_label.image = photo
-    logo_label.pack(side="left", padx=(15, 20), pady=(20,20))
+    logo_label.pack(side="left", padx=(15, 20), pady=(20, 20))
 
 header_text = ttkb.Label(header_frame, text="RFID Tag Writer", style="Title.TLabel")
 header_text.pack(side="left", pady=10)
@@ -67,35 +77,37 @@ form_container = tk.LabelFrame(
     fg="#f8fafc",
     font=("Segoe UI", 12, "bold"),
 )
-form_container.pack(side="left", fill="both", expand=True, padx=(10, 20), pady=(0, 10))
+form_container.pack(side="left", anchor="nw", padx=15, pady=8)
 
 form_grid = ttkb.Frame(form_container)
-form_grid.pack(fill="both", expand=True)
+form_grid.pack(anchor="nw", padx=20, pady=15)
 
 field_vars = {}
 field_rows = [
     ("Tag ID Storage", "tag_id"),
     ("Serial Number Storage", "serial"),
     ("TA Certification Storage", "cert"),
-    ("GVW/GCW Storage", "gvm"),
+    ("GVW/GCW Storage", "gvw"),
     ("VIN Storage", "vin"),
     ("Registration No.", "registration"),
     ("Axle Count Storage", "axle"),
     ("Insurance Information", "insurance"),
 ]
 
-for index, (label_text, var_name) in enumerate(field_rows):
-    row = index // 2
-    col = index % 2
-    label = ttkb.Label(form_grid, text=label_text, style="Field.TLabel")
-    label.grid(row=row * 2, column=col, sticky="w", padx=(0, 15), pady=(0, 5))
+for label_text, var_name in field_rows:
+
+    ttkb.Label(form_grid, text=label_text, style="Field.TLabel").pack(
+        anchor="w", pady=(0, 5)
+    )
+
     var = tk.StringVar()
     field_vars[var_name] = var
-    entry = ttkb.Entry(form_grid, textvariable=var, bootstyle="info")
-    entry.grid(row=row * 2 + 1, column=col, sticky="ew", padx=(0, 15), pady=(0, 12))
 
-form_grid.columnconfigure(0, weight=1)
-form_grid.columnconfigure(1, weight=1)
+    ttkb.Entry(form_grid, textvariable=var, width=50, bootstyle="info").pack(
+        anchor="w", pady=(0, 8)
+    )
+
+    form_grid.pack(anchor="nw", padx=20, pady=10)
 
 button_row = ttkb.Frame(form_container)
 button_row.pack(fill="x", pady=(10, 0))
@@ -106,13 +118,13 @@ def TagDataForm():
     tag_id = field_vars["tag_id"].get()
     serial = field_vars["serial"].get()
     cert = field_vars["cert"].get()
-    gvm = field_vars["gvm"].get()
+    gvw = field_vars["gvw"].get()
     vin_store = field_vars["vin"].get()
     reg = field_vars["registration"].get()
     axle = field_vars["axle"].get()
     insurance = field_vars["insurance"].get()
 
-    if all([tag_id, serial, cert, gvm, vin_store, reg, axle, insurance]):
+    if all([tag_id, serial, cert, gvw, vin_store, reg, axle, insurance]):
         messagebox.showinfo("Status", "Data Submitted")
     else:
         messagebox.showinfo("Error", "Please fill all the fields")
@@ -121,10 +133,11 @@ def TagDataForm():
 submit_button = ttkb.Button(
     button_row, text="Submit", command=TagDataForm, bootstyle="success-outline"
 )
-submit_button.pack(side="right", pady=(0, 330))
+submit_button.grid(row=8, column=1, padx=(225, 10), pady=(0, 40), sticky="e")
+
 
 right_panel = ttkb.Frame(content_frame)
-right_panel.pack(side="right", fill="y")
+right_panel.pack(side="right", fill="both", expand=True, padx=(10, 10), pady=(0, 10))
 
 controls_frame = tk.LabelFrame(
     right_panel,
@@ -162,7 +175,10 @@ selected_option = tk.StringVar(value="Choose Medium")
 
 
 def on_select(event):
-    write_log(f"Selected medium: {selected_option.get()}")
+    write_log(f"Selected medium: {selected_option.get()}", log_console)
+
+    if selected_option.get() == "UART":
+        reader.connect(PORT, BAUDRATE)
 
 
 medium_label = ttkb.Label(
@@ -189,11 +205,55 @@ log_frame = tk.LabelFrame(
     fg="#f8fafc",
     font=("Segoe UI", 11, "bold"),
 )
-log_frame.pack(fill="both", expand=True)
+log_frame.pack(fill="both", expand=True, padx=5, pady=(5, 0))
 
 log_console = LogConsole(log_frame)
 log_console.pack(fill="both", expand=True)
 
 write_log("RFID Communicator started", log_console)
+
+
+def update_gui():
+
+    while True:
+        data = reader.get_data()
+
+        if data is None:
+            break
+
+        write_log(f"UART RX : {data}", log_console)
+
+    root.after(100, update_gui)
+
+
+def on_close():
+    try:
+        reader.stop()
+    except Exception:
+        pass
+
+    try:
+        root.destroy()
+    except Exception:
+        pass
+
+
+def toggle_logging(event=None):
+    global logging_enabled
+
+    logging_enabled = not logging_enabled
+
+    if logging_enabled:
+        write_log("Logging Started", log_console)
+    else:
+        write_log("Logging Stopped", log_console)
+
+
+root.bind("<space>", toggle_logging)
+
+
+update_gui()
+
+root.protocol("WM_DELETE_WINDOW", on_close)
 
 root.mainloop()
