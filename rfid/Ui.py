@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 import ttkbootstrap as ttkb
 from pathlib import Path
 from PIL import Image, ImageTk
@@ -77,7 +77,7 @@ form_container = tk.LabelFrame(
     fg="#f8fafc",
     font=("Segoe UI", 12, "bold"),
 )
-form_container.pack(side="left", anchor="nw", padx=15, pady=8)
+form_container.pack(side="left", anchor="nw", padx=15, pady=0)
 
 form_grid = ttkb.Frame(form_container)
 form_grid.pack(anchor="nw", padx=20, pady=15)
@@ -149,6 +149,12 @@ controls_frame = tk.LabelFrame(
     font=("Segoe UI", 11, "bold"),
 )
 controls_frame.pack(fill="x", padx=(0, 10), pady=(0, 20))
+controls_row = ttkb.Frame(controls_frame)
+controls_row.pack(fill="x", expand=True)
+
+# Make both columns expand equally
+controls_row.columnconfigure(0, weight=1)
+controls_row.columnconfigure(1, weight=1)
 
 search_var = tk.StringVar()
 
@@ -158,11 +164,14 @@ def search():
     if not search_var.get():
         messagebox.showinfo("Search", "Enter a VIN to search")
 
+# Left section (Search VIN)
+search_frame = ttkb.Frame(controls_row)
+search_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 
-search_label = ttkb.Label(controls_frame, text="Search VIN No.", style="Section.TLabel")
+search_label = ttkb.Label(search_frame, text="Search VIN No.", style="Section.TLabel")
 search_label.pack(anchor="w")
 
-search_box = ttkb.Frame(controls_frame)
+search_box = ttkb.Frame(search_frame)
 search_box.pack(fill="x", pady=(6, 0))
 
 search_entry = ttkb.Entry(search_box, textvariable=search_var, bootstyle="info")
@@ -180,14 +189,19 @@ def on_select(event):
     if selected_option.get() == "UART":
         reader.connect(PORT, BAUDRATE)
 
+# Right section (Medium)
+medium_frame = ttkb.Frame(controls_row)
+medium_frame.grid(row=0, column=1, sticky="nsew")
 
 medium_label = ttkb.Label(
-    controls_frame, text="Select Data Transmit Medium", style="Section.TLabel"
+    medium_frame,
+    text="Select Data Transmit Medium",
+    style="Section.TLabel",
 )
-medium_label.pack(anchor="w", pady=(12, 6))
+medium_label.pack(anchor="w", padx=(0, 2), pady=(6, 6))
 
 dropdown = ttkb.Combobox(
-    controls_frame,
+    medium_frame,
     textvariable=selected_option,
     values=["UART", "PCAN"],
     state="readonly",
@@ -207,7 +221,49 @@ log_frame = tk.LabelFrame(
 )
 log_frame.pack(fill="both", expand=True, padx=5, pady=(5, 0))
 
+# --- Auto-save controls for log file ---
+controls_subframe = ttkb.Frame(log_frame)
+controls_subframe.pack(fill="x", pady=(0, 8))
+
+auto_save_var = tk.BooleanVar(value=False)
+log_path_var = tk.StringVar(value=os.path.join(os.getcwd(), "activity.log"))
+
+def browse_log_path():
+    path = filedialog.asksaveasfilename(
+        parent=root,
+        title="Select log file",
+        defaultextension=".log",
+        filetypes=[("Log files", "*.log"), ("All files", "*")],
+    )
+    if path:
+        log_path_var.set(path)
+        try:
+            log_console.set_file_path(path)
+        except Exception:
+            pass
+
+def toggle_auto_save():
+    enabled = bool(auto_save_var.get())
+    log_console.enable_auto_save(enabled)
+    write_log(f"Auto-save {'enabled' if enabled else 'disabled'}", log_console)
+
+auto_save_cb = ttkb.Checkbutton(
+    controls_subframe,
+    text="Auto Save Logs",
+    variable=auto_save_var,
+    command=toggle_auto_save,
+    bootstyle="info",
+)
+auto_save_cb.pack(side="left", padx=(0, 8))
+
+log_path_entry = ttkb.Entry(controls_subframe, textvariable=log_path_var, width=40, bootstyle="info")
+log_path_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+browse_btn = ttkb.Button(controls_subframe, text="Browse", command=browse_log_path, bootstyle="secondary")
+browse_btn.pack(side="left")
+
 log_console = LogConsole(log_frame)
+log_console.set_file_path(log_path_var.get())
 log_console.pack(fill="both", expand=True)
 
 write_log("RFID Communicator started", log_console)
