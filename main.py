@@ -1,4 +1,4 @@
-import rfid.Ui
+from rfid.Ui import root
 
 if __name__ == "__main__":
-    pass
+    root.mainloop()
