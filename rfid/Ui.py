@@ -4,15 +4,11 @@ from tkinter import messagebox, filedialog
 import ttkbootstrap as ttkb
 from pathlib import Path
 from PIL import Image, ImageTk
-from event_logger import write_log, LogConsole
-import ttkbootstrap as ttk
-from serial_port import SerialReader
+from config import PORT, BAUDRATE, LOG_DEFAULT_PATH
+from logger import write_log
+from rfid.event_logger import LogConsole
+from rfid.serial_port import SerialReader
 
-# -----------------------------
-# Serial Configuration
-# -----------------------------
-PORT = "COM6"  # Change as needed
-BAUDRATE = 115200
 logging_enabled = False
 
 reader = SerialReader(PORT, BAUDRATE)
@@ -50,7 +46,7 @@ header_frame = ttkb.Frame(main_frame)
 header_frame.pack(fill="x", pady=(0, 15))
 
 BASE_DIR = Path(__file__).resolve().parent
-logo_path = BASE_DIR.parent / "Acc_logo.png"
+logo_path = BASE_DIR.parent / "assets" / "Acc_logo.png"
 photo = None
 if os.path.exists(logo_path):
     image = Image.open(logo_path)
@@ -77,7 +73,7 @@ form_container = tk.LabelFrame(
     fg="#f8fafc",
     font=("Segoe UI", 12, "bold"),
 )
-form_container.pack(side="left", anchor="nw", padx=15, pady=0)
+form_container.pack(side="left", anchor="nw", padx=15, pady=(0, 8))
 
 form_grid = ttkb.Frame(form_container)
 form_grid.pack(anchor="nw", padx=20, pady=15)
