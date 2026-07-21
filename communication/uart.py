@@ -1,6 +1,7 @@
 import serial
 import threading
 import queue
+import time
 
 
 class SerialReader:
@@ -84,6 +85,40 @@ class SerialReader:
         if not self.queue.empty():
             return self.queue.get()
         return None
+
+    def probe_port(self, port=None, baudrate=None, probe_time=0.8):
+        if port is None:
+            port = self.port
+        if baudrate is None:
+            baudrate = self.baudrate
+
+        try:
+            with serial.Serial(
+                port=port,
+                baudrate=baudrate,
+                bytesize=self.bytesize,
+                parity=self.parity,
+                stopbits=self.stopbits,
+                timeout=0.2,
+            ) as ser:
+                start = time.time()
+                while time.time() - start < probe_time:
+                    if ser.in_waiting:
+                        ser.readline()
+                        return True
+                return False
+        except Exception:
+            return False
+
+    def write_line(self, data):
+        if not self.connected or self.ser is None:
+            return False
+        try:
+            self.ser.write(data.encode("utf-8"))
+            return True
+        except Exception as e:
+            self.queue.put(f"UART Write Failed : {e}")
+            return False
 
     def is_connected(self):
         return self.connected

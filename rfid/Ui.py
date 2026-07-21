@@ -4,6 +4,7 @@ from tkinter import messagebox, filedialog
 import ttkbootstrap as ttkb
 from pathlib import Path
 from PIL import Image, ImageTk
+from serial.tools import list_ports
 from config import PORT, BAUDRATE, LOG_DEFAULT_PATH
 from logger import write_log
 from rfid.event_logger import LogConsole
@@ -52,8 +53,8 @@ if photo:
     logo_label.image = photo
     logo_label.pack(side="left", padx=(0, 20), pady=(10, 10))
 
-header_text = ttkb.Label(header_frame, text="RFID Tag Writer", style="Title.TLabel")
-header_text.pack(side="left", pady=10)
+header_text = ttkb.Label(header_frame, text="Event-Based Parameter Reader & Writer", style="Title.TLabel")
+header_text.pack(side="top", pady=10)
 
 content_frame = ttkb.Frame(main_frame)
 content_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
@@ -75,6 +76,13 @@ form_container.pack_propagate(False)
 form_grid = ttkb.Frame(form_container)
 form_grid.pack(anchor="nw", padx=10, pady=10)
 
+def detect_com_ports():
+    try:
+        ports = [port.device for port in list_ports.comports()]
+        return sorted(ports)
+    except Exception:
+        return []
+
 field_vars = {}
 field_rows = [
     ("Tag ID Storage", "tag_id"),
@@ -92,11 +100,13 @@ for row_index, (label_text, var_name) in enumerate(field_rows):
         row=row_index * 2, column=0, sticky="w", pady=(0, 4)
     )
     field_vars[var_name] = tk.StringVar()
+    entry_state = "readonly" if var_name == "tag_id" else "normal"
     ttkb.Entry(
         form_grid,
         textvariable=field_vars[var_name],
         width=33,
         bootstyle="info",
+        state=entry_state,
     ).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
 
 button_frame = ttkb.Frame(form_container)
@@ -170,9 +180,15 @@ port_var = tk.StringVar(value=PORT)
 baud_var = tk.StringVar(value=str(BAUDRATE))
 status_var = tk.StringVar(value="Disconnected")
 
-available_ports = ["COM1", "COM2", "COM3", "COM4", "COM5"]
+available_ports = detect_com_ports()
+if not available_ports:
+    available_ports = ["COM1", "COM2", "COM3", "COM4", "COM5"]
+
+default_port = PORT if PORT in available_ports else (available_ports[0] if available_ports else PORT)
+port_var = tk.StringVar(value=default_port)
 available_baud_rates = ["9600", "19200", "38400", "57600", "115200"]
 
+port_combobox = None
 for row_index, (label_text, variable, values) in enumerate([
     ("Medium", medium_var, ["UART", "PCAN"]),
     ("COM Port", port_var, available_ports),
@@ -181,14 +197,20 @@ for row_index, (label_text, variable, values) in enumerate([
     ttkb.Label(communication_frame, text=label_text, style="Field.TLabel").grid(
         row=row_index, column=0, sticky="w", pady=(0, 6)
     )
-    ttkb.Combobox(
+    combobox = ttkb.Combobox(
         communication_frame,
         textvariable=variable,
         values=values,
         state="readonly",
         bootstyle="info",
         width=20,
-    ).grid(row=row_index, column=1, sticky="w", padx=(10, 0), pady=(0, 6))
+    )
+    combobox.grid(row=row_index, column=1, sticky="w", padx=(10, 0), pady=(0, 6))
+    if label_text == "COM Port":
+        port_combobox = combobox
+
+if port_combobox is not None:
+    port_combobox.configure(values=available_ports)
 
 status_label = ttkb.Label(
     communication_frame,
@@ -392,17 +414,61 @@ def _set_connection_state(connected: bool):
         stop_scan_button.configure(state="disabled")
 
 
+def populate_com_ports():
+    ports = detect_com_ports()
+    if not ports:
+        ports = ["COM1", "COM2", "COM3", "COM4", "COM5"]
+    port_combobox.configure(values=ports)
+    if port_var.get() not in ports:
+        port_var.set(ports[0])
+
+populate_com_ports()
+
+
 def connect_reader():
     if reader.is_connected():
         write_log("Reader already connected", log_console)
         return
+
+    ports = detect_com_ports()
+    if not ports:
+        ports = ["COM8", "COM9", "COM10"]
+        write_log("No COM ports detected", log_console)
+
+    port_combobox.configure(values=ports)
+
+    selected_port = port_var.get()
+    if selected_port not in ports:
+        selected_port = ports[0]
+        port_var.set(selected_port)
+
+    probe_reader = SerialReader(selected_port, int(baud_var.get()))
+    if not probe_reader.probe_port(selected_port, int(baud_var.get())):
+        active_port = None
+        for port in ports:
+            if probe_reader.probe_port(port, int(baud_var.get())):
+                active_port = port
+                break
+        if active_port:
+            selected_port = active_port
+            port_var.set(active_port)
+            write_log(f"Auto-selected active port {active_port}", log_console)
+        else:
+            messagebox.showwarning(
+                "Connect Reader",
+                "No active transmitting/receiving COM port was found."
+            )
+            write_log("No active COM port found", log_console)
+            return
+
     success = reader.connect(
-        port=port_var.get(),
+        port=selected_port,
         baudrate=int(baud_var.get()),
     )
     if success:
         _set_connection_state(True)
-        write_log(f"Connected to {port_var.get()} @ {baud_var.get()}", log_console)
+        write_log(f"Connected to {selected_port} @ {baud_var.get()}", log_console)
+        port_var.set(selected_port)
     else:
         _set_connection_state(False)
         write_log("Failed to connect", log_console)
@@ -419,7 +485,10 @@ def start_scan():
         messagebox.showwarning("Start Scan", "Connect the reader before scanning.")
         return
     reader_status.set("Scanning")
-    write_log("Start scan", log_console)
+    if reader.write_line("SCAN\n"):
+        write_log("Start scan command sent", log_console)
+    else:
+        write_log("Failed to send scan command", log_console)
 
 
 def stop_scan():
