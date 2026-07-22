@@ -54,7 +54,14 @@ if photo:
     logo_label.pack(side="left", padx=(0, 20), pady=(10, 10))
 
 header_text = ttkb.Label(header_frame, text="Event-Based Parameter Reader & Writer", style="Title.TLabel")
-header_text.pack(side="top", pady=10)
+header_text.pack(side="left", pady=10)
+
+version_label = ttkb.Label(
+    header_frame,
+    text="Version: 1.0.0",
+    style="Field.TLabel",
+)
+version_label.pack(side="right", pady=10)
 
 content_frame = ttkb.Frame(main_frame)
 content_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
@@ -70,7 +77,7 @@ form_container = tk.LabelFrame(
     font=("Segoe UI", 12, "bold"),
 )
 form_container.pack(side="left", fill="y", padx=(0, 10), pady=(0, 8))
-form_container.configure(width=420)
+form_container.configure(width=620)
 form_container.pack_propagate(False)
 
 form_grid = ttkb.Frame(form_container)
@@ -97,22 +104,39 @@ field_rows = [
 
 for row_index, (label_text, var_name) in enumerate(field_rows):
     ttkb.Label(form_grid, text=label_text, style="Field.TLabel").grid(
-        row=row_index * 2, column=0, sticky="w", pady=(0, 4)
+        row=row_index * 2, column=0, columnspan=2, sticky="w", pady=(0, 4)
     )
     field_vars[var_name] = tk.StringVar()
-    entry_state = "readonly" if var_name == "tag_id" else "normal"
+    entry_state = "normal"
     ttkb.Entry(
         form_grid,
         textvariable=field_vars[var_name],
-        width=33,
+        width=38,
         bootstyle="info",
         state=entry_state,
     ).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+    ttkb.Button(
+        form_grid,
+        text="Read",
+        command=lambda name=var_name: read_field(name),
+        bootstyle="info",
+        width=10,
+    ).grid(row=row_index * 2 + 1, column=1, sticky="w", padx=(10, 0), pady=(0, 10),)
 
 button_frame = ttkb.Frame(form_container)
-button_frame.pack(fill="x", pady=(10, 0))
+button_frame.pack(fill="x", pady=(1, 0))
 
-existing_tag_var = tk.StringVar()
+button_center = ttkb.Frame(button_frame)
+button_center.pack(anchor="center")
+def read_field(field_name):
+    value = field_vars[field_name].get().strip()
+    if value:
+        write_log(f"Read field '{field_name}' : {value}", log_console)
+        messagebox.showinfo("Read Field", f"{field_name.replace('_', ' ').title()} loaded.")
+    else:
+        write_log(f"Read field '{field_name}' is empty", log_console)
+        messagebox.showwarning("Read Field", "This field is empty.")
+
 
 def write_tag():
     values = [field_vars[name].get().strip() for _, name in field_rows]
@@ -120,40 +144,34 @@ def write_tag():
         write_log("Write Tag request submitted", log_console)
         messagebox.showinfo("Write Tag", "Tag data is ready to write.")
     else:
+        write_log("Write Tag failed: missing fields", log_console)
         messagebox.showwarning("Write Tag", "Fill all tag fields before writing.")
 
 
 def clear_fields():
     for var in field_vars.values():
         var.set("")
-    existing_tag_var.set("")
     reader_status.set("Idle")
     tag_present.set("No")
     write_log("Form cleared", log_console)
 
-read_button = ttkb.Button(
-    button_frame,
-    text="Read Tag",
-    command=lambda: read_existing_tag(),
-    bootstyle="secondary",
-)
-read_button.pack(side="left", expand=True, fill="x", padx=(0, 8))
-
 write_button = ttkb.Button(
-    button_frame,
+    button_center,
     text="Write Tag",
     command=write_tag,
     bootstyle="success",
+    width=16,
 )
-write_button.pack(side="left", expand=True, fill="x", padx=(0, 8))
+write_button.pack(side="left", padx=(0, 12))
 
 clear_button = ttkb.Button(
-    button_frame,
+    button_center,
     text="Clear",
     command=clear_fields,
     bootstyle="warning",
+    width=16,
 )
-clear_button.pack(side="left", expand=True, fill="x")
+clear_button.pack(side="left")
 
 # Right side panel
 right_panel = ttkb.Frame(content_frame)
@@ -167,13 +185,16 @@ top_row.pack(fill="x", pady=(0, 12))
 communication_frame = tk.LabelFrame(
     top_row,
     text="Communication",
-    padx=16,
-    pady=16,
+    padx=18,
+    pady=18,
     bg="#1f2937",
     fg="#f8fafc",
     font=("Segoe UI", 11, "bold"),
 )
-communication_frame.pack(side="left", fill="both", expand=True, padx=(0, 8))
+communication_frame.pack(side="left", fill="y", expand=False, padx=(0, 10), pady=(0, 4))
+communication_frame.configure(width=400)
+communication_frame.columnconfigure(1, weight=1)
+communication_frame.columnconfigure(3, weight=1)
 
 medium_var = tk.StringVar(value="UART")
 port_var = tk.StringVar(value=PORT)
@@ -189,13 +210,23 @@ port_var = tk.StringVar(value=default_port)
 available_baud_rates = ["9600", "19200", "38400", "57600", "115200"]
 
 port_combobox = None
-for row_index, (label_text, variable, values) in enumerate([
+for label_text, variable, values in [
     ("Medium", medium_var, ["UART", "PCAN"]),
     ("COM Port", port_var, available_ports),
     ("Baud Rate", baud_var, available_baud_rates),
-]):
+]:
+    if label_text == "Medium":
+        row = 0
+        col = 0
+    elif label_text == "COM Port":
+        row = 0
+        col = 2
+    else:
+        row = 1
+        col = 0
+
     ttkb.Label(communication_frame, text=label_text, style="Field.TLabel").grid(
-        row=row_index, column=0, sticky="w", pady=(0, 6)
+        row=row, column=col, sticky="w", pady=(0, 10)
     )
     combobox = ttkb.Combobox(
         communication_frame,
@@ -203,32 +234,30 @@ for row_index, (label_text, variable, values) in enumerate([
         values=values,
         state="readonly",
         bootstyle="info",
-        width=20,
+        width=18,
     )
-    combobox.grid(row=row_index, column=1, sticky="w", padx=(10, 0), pady=(0, 6))
+    if label_text == "Medium":
+        grid_padx = (12, 24)
+    elif label_text == "COM Port":
+        grid_padx = (12, 0)
+    else:
+        grid_padx = (12, 0)
+    if label_text == "Baud Rate":
+        grid_pady = (0, 16)
+    else:
+        grid_pady = (0, 10)
+    combobox.grid(row=row, column=col + 1, sticky="w", padx=grid_padx, pady=grid_pady)
     if label_text == "COM Port":
         port_combobox = combobox
 
 if port_combobox is not None:
     port_combobox.configure(values=available_ports)
 
-status_label = ttkb.Label(
-    communication_frame,
-    text="Status:",
-    style="Field.TLabel",
-)
-status_label.grid(row=3, column=0, sticky="w", pady=(8, 0))
-status_value = ttkb.Label(
-    communication_frame,
-    textvariable=status_var,
-    style="Value.TLabel",
-)
-status_value.grid(row=3, column=1, sticky="w", padx=(10, 0), pady=(8, 0))
-
 button_frame_comm = ttkb.Frame(communication_frame)
-button_frame_comm.grid(row=4, column=0, columnspan=2, pady=(12, 0), sticky="ew")
+button_frame_comm.grid(row=2, column=0, columnspan=3, pady=(16, 0), sticky="ew")
 button_frame_comm.columnconfigure(0, weight=1)
 button_frame_comm.columnconfigure(1, weight=1)
+button_frame_comm.columnconfigure(2, weight=1)
 
 connect_button = ttkb.Button(
     button_frame_comm,
@@ -236,7 +265,7 @@ connect_button = ttkb.Button(
     command=lambda: connect_reader(),
     bootstyle="success",
 )
-connect_button.grid(row=0, column=0, sticky="ew", padx=(0, 6))
+connect_button.grid(row=0, column=0, sticky="ew", padx=(0, 14))
 
 disconnect_button = ttkb.Button(
     button_frame_comm,
@@ -245,35 +274,53 @@ disconnect_button = ttkb.Button(
     bootstyle="danger",
     state="disabled",
 )
-disconnect_button.grid(row=0, column=1, sticky="ew", padx=(6, 0))
+disconnect_button.grid(row=0, column=1, sticky="ew", padx=(14, 14))
+
+status_frame = ttkb.Frame(button_frame_comm)
+status_frame.grid(row=0, column=2, sticky="w", padx=(14, 0))
+status_label = ttkb.Label(
+    status_frame,
+    text="Status:",
+    style="Field.TLabel",
+)
+status_label.pack(side="left", padx=(0, 4))
+status_value = ttkb.Label(
+    status_frame,
+    textvariable=status_var,
+    style="Value.TLabel",
+)
+status_value.pack(side="left")
 
 # Reader section
 reader_frame = tk.LabelFrame(
     top_row,
     text="Reader",
-    padx=16,
-    pady=16,
+    padx=18,
+    pady=18,
     bg="#1f2937",
     fg="#f8fafc",
     font=("Segoe UI", 11, "bold"),
 )
-reader_frame.pack(side="left", fill="both", expand=True, padx=(0, 8))
+reader_frame.pack(side="left", fill="y", padx=(0, 10), expand=False)
+reader_frame.configure(width=260)
+reader_frame.columnconfigure(1, weight=1)
+reader_frame.columnconfigure(3, weight=1)
 
 reader_status = tk.StringVar(value="Idle")
 tag_present = tk.StringVar(value="No")
 
 status_title = ttkb.Label(reader_frame, text="Status:", style="Field.TLabel")
-status_title.grid(row=0, column=0, sticky="w", pady=(0, 6))
+status_title.grid(row=0, column=0, sticky="w", pady=(0, 10))
 status_value = ttkb.Label(reader_frame, textvariable=reader_status, style="Value.TLabel")
-status_value.grid(row=0, column=1, sticky="w", padx=(10, 0), pady=(0, 6))
+status_value.grid(row=0, column=1, sticky="w", padx=(10, 36), pady=(0, 10))
 
 present_title = ttkb.Label(reader_frame, text="Tag Present:", style="Field.TLabel")
-present_title.grid(row=1, column=0, sticky="w", pady=(0, 6))
+present_title.grid(row=0, column=2, sticky="w", pady=(0, 10))
 present_value = ttkb.Label(reader_frame, textvariable=tag_present, style="Value.TLabel")
-present_value.grid(row=1, column=1, sticky="w", padx=(10, 0), pady=(0, 6))
+present_value.grid(row=0, column=3, sticky="w", padx=(10, 0), pady=(0, 10))
 
 reader_button_frame = ttkb.Frame(reader_frame)
-reader_button_frame.grid(row=2, column=0, columnspan=2, pady=(12, 0), sticky="ew")
+reader_button_frame.grid(row=1, column=0, columnspan=4, pady=(16, 0), sticky="ew")
 reader_button_frame.columnconfigure(0, weight=1)
 reader_button_frame.columnconfigure(1, weight=1)
 
@@ -284,7 +331,7 @@ start_scan_button = ttkb.Button(
     bootstyle="info",
     state="disabled",
 )
-start_scan_button.grid(row=0, column=0, sticky="ew", padx=(0, 6))
+start_scan_button.grid(row=0, column=0, sticky="ew", padx=(0, 14))
 
 stop_scan_button = ttkb.Button(
     reader_button_frame,
@@ -293,40 +340,7 @@ stop_scan_button = ttkb.Button(
     bootstyle="secondary",
     state="disabled",
 )
-stop_scan_button.grid(row=0, column=1, sticky="ew", padx=(6, 0))
-
-# Read Existing Tag section
-existing_tag_frame = tk.LabelFrame(
-    top_row,
-    text="Read Existing Tag",
-    padx=16,
-    pady=16,
-    bg="#1f2937",
-    fg="#f8fafc",
-    font=("Segoe UI", 11, "bold"),
-)
-existing_tag_frame.pack(side="left", fill="both", expand=True)
-
-existing_tag_var = tk.StringVar()
-
-ttkb.Label(existing_tag_frame, text="Tag ID", style="Field.TLabel").grid(
-    row=0, column=0, sticky="w", pady=(0, 6)
-)
-
-ttkb.Entry(
-    existing_tag_frame,
-    textvariable=existing_tag_var,
-    width=40,
-    bootstyle="info",
-).grid(row=1, column=0, sticky="ew", pady=(0, 10))
-
-read_existing_button = ttkb.Button(
-    existing_tag_frame,
-    text="Read",
-    command=lambda: read_existing_tag(),
-    bootstyle="primary",
-)
-read_existing_button.grid(row=1, column=1, sticky="ew", padx=(10, 0), pady=(0, 10))
+stop_scan_button.grid(row=0, column=1, sticky="ew", padx=(14, 0))
 
 # Activity log section
 log_frame = tk.LabelFrame(
@@ -377,10 +391,10 @@ auto_save_cb.pack(side="left", padx=(0, 8))
 log_path_entry = ttkb.Entry(
     controls_subframe,
     textvariable=log_path_var,
-    width=38,
+    width=80,
     bootstyle="info",
 )
-log_path_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+log_path_entry.pack(side="left", expand=True, padx=(0, 8))
 
 browse_btn = ttkb.Button(
     controls_subframe,
@@ -390,12 +404,19 @@ browse_btn = ttkb.Button(
 )
 browse_btn.pack(side="left")
 
+clear_log_btn = ttkb.Button(
+    controls_subframe,
+    text="Clear Log",
+    command=lambda: clear_log_console(),
+    bootstyle="secondary",
+)
+clear_log_btn.pack(side="left", padx=(8, 0))
+
 log_console = LogConsole(log_frame)
 log_console.set_file_path(log_path_var.get())
 log_console.pack(fill="both", expand=True)
 
 write_log("RFID Communicator started", log_console)
-
 
 def _set_connection_state(connected: bool):
     if connected:
@@ -412,6 +433,10 @@ def _set_connection_state(connected: bool):
         disconnect_button.configure(state="disabled")
         start_scan_button.configure(state="disabled")
         stop_scan_button.configure(state="disabled")
+
+
+def clear_log_console():
+    log_console.clear()
 
 
 def populate_com_ports():
@@ -439,27 +464,21 @@ def connect_reader():
 
     selected_port = port_var.get()
     if selected_port not in ports:
-        selected_port = ports[0]
-        port_var.set(selected_port)
+        messagebox.showwarning(
+            "Connect Reader",
+            "The selected COM port is not available. Please select a valid port."
+        )
+        write_log("Selected COM port unavailable", log_console)
+        return
 
     probe_reader = SerialReader(selected_port, int(baud_var.get()))
     if not probe_reader.probe_port(selected_port, int(baud_var.get())):
-        active_port = None
-        for port in ports:
-            if probe_reader.probe_port(port, int(baud_var.get())):
-                active_port = port
-                break
-        if active_port:
-            selected_port = active_port
-            port_var.set(active_port)
-            write_log(f"Auto-selected active port {active_port}", log_console)
-        else:
-            messagebox.showwarning(
-                "Connect Reader",
-                "No active transmitting/receiving COM port was found."
-            )
-            write_log("No active COM port found", log_console)
-            return
+        messagebox.showwarning(
+            "Connect Reader",
+            f"Selected port {selected_port} is not transmitting or receiving data."
+        )
+        write_log(f"Selected port {selected_port} inactive", log_console)
+        return
 
     success = reader.connect(
         port=selected_port,
@@ -496,20 +515,6 @@ def stop_scan():
         return
     reader_status.set("Idle")
     write_log("Stop scan", log_console)
-
-
-def read_existing_tag():
-    existing_id = existing_tag_var.get().strip()
-    if existing_id:
-        write_log(f"Read existing tag ID: {existing_id}", log_console)
-        messagebox.showinfo("Read Existing Tag", "Existing tag ID loaded.")
-        return
-    tag_id_value = field_vars["tag_id"].get().strip()
-    if tag_id_value:
-        existing_tag_var.set(tag_id_value)
-        write_log("Existing tag loaded from detected tag", log_console)
-        return
-    messagebox.showinfo("Read Existing Tag", "No tag ID available to read.")
 
 
 def update_gui():

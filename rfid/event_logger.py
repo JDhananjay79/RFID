@@ -56,6 +56,11 @@ class LogConsole(scrolledtext.ScrolledText):
         except Exception:
             return False
 
+    def clear(self):
+        self.configure(state="normal")
+        self.delete("1.0", "end")
+        self.configure(state="disabled")
+
 
 def write_log(message, log_box=None):
     if log_box is None:
