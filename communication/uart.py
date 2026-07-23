@@ -14,6 +14,7 @@ class SerialReader:
         self.timeout = timeout
         self.ser = None
         self.queue = queue.Queue()
+        self.raw_queue = queue.Queue()
         self.running = False
         self.connected = False
 
@@ -64,9 +65,15 @@ class SerialReader:
         while self.running:
             try:
                 if self.ser.in_waiting:
-                    line = self.ser.readline().decode("utf-8", errors="ignore").strip()
-                    if line:
-                        self.queue.put(line)
+                    raw = self.ser.read(self.ser.in_waiting)
+                    if raw:
+                        self.raw_queue.put(raw)
+                        try:
+                            line = raw.decode("utf-8", errors="ignore").strip()
+                        except Exception:
+                            line = ""
+                        if line:
+                            self.queue.put(line)
             except Exception as e:
                 self.queue.put(f"UART Error : {e}")
                 self.disconnect()
@@ -84,6 +91,11 @@ class SerialReader:
     def get_data(self):
         if not self.queue.empty():
             return self.queue.get()
+        return None
+
+    def get_raw_data(self):
+        if not self.raw_queue.empty():
+            return self.raw_queue.get()
         return None
 
     def probe_port(self, port=None, baudrate=None, probe_time=0.8):
@@ -115,6 +127,17 @@ class SerialReader:
             return False
         try:
             self.ser.write(data.encode("utf-8"))
+            return True
+        except Exception as e:
+            self.queue.put(f"UART Write Failed : {e}")
+            return False
+
+    def write_bytes(self, data: bytes) -> bool:
+        """Write raw bytes to the serial port."""
+        if not self.connected or self.ser is None:
+            return False
+        try:
+            self.ser.write(data)
             return True
         except Exception as e:
             self.queue.put(f"UART Write Failed : {e}")

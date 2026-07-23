@@ -694,6 +694,86 @@ def update_gui():
     root.after(100, update_gui)
 
 
+def _hex_bytes_from_text(s: str):
+    """Parse hex text into bytes. Accepts spaces and optional 0x prefixes."""
+    filtered = s.replace("0x", "").replace("0X", "").replace(" ", "")
+    if len(filtered) % 2 != 0:
+        # odd length is invalid
+        return None
+    try:
+        return bytes.fromhex(filtered)
+    except Exception:
+        return None
+
+
+def handle_paste_to_log(event=None):
+    try:
+        # get clipboard text
+        txt = root.clipboard_get()
+    except Exception:
+        return
+
+    # Try parsing as hex
+    hb = _hex_bytes_from_text(txt.strip())
+    if hb is None:
+        # Not hex — ignore
+        return
+
+    # send bytes to reader if connected
+    sent = False
+    if reader.is_connected():
+        sent = reader.write_bytes(hb)
+        write_log(f"UART TX (hex): {hb.hex().upper()}", log_console)
+    else:
+        write_log("UART TX ignored: reader not connected", log_console)
+
+    # If sent or not, attempt to read queued responses and log only those
+    # whose hex representation starts with 24 and ends with 23
+    # Allow some time for response to arrive
+    import time
+
+    end_time = time.time() + 0.5
+    buffer = b""
+    while time.time() < end_time:
+        raw = reader.get_raw_data()
+        if raw is None:
+            time.sleep(0.05)
+            continue
+        if isinstance(raw, bytes):
+            buffer += raw
+        else:
+            try:
+                buffer += bytes(raw)
+            except Exception:
+                continue
+
+    # scan buffer for frames that start with 0x24 and end with 0x23
+    frames = []
+    i = 0
+    while i < len(buffer):
+        if buffer[i] == 0x24:
+            # find next 0x23 after i
+            j = buffer.find(bytes([0x23]), i + 1)
+            if j != -1:
+                frames.append(buffer[i : j + 1])
+                i = j + 1
+                continue
+        i += 1
+
+    if buffer:
+        write_log(f"UART RX (hex full): {buffer.hex().upper()}", log_console)
+    for f in frames:
+        write_log(f"UART RX (hex frame): {f.hex().upper()}", log_console)
+
+
+# bind paste event on log_console widget (handle Ctrl+V)
+try:
+    log_console.bind("<Control-v>", lambda e: handle_paste_to_log(e))
+    log_console.bind("<Control-V>", lambda e: handle_paste_to_log(e))
+except Exception:
+    pass
+
+
 def on_close():
     try:
         reader.stop()
