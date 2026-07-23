@@ -23,6 +23,7 @@ style.configure("Card.TFrame", background="#223446")
 style.configure("Title.TLabel", font=("Segoe UI", 22, "bold"), foreground="#F8FAFC")
 style.configure("Section.TLabel", font=("Segoe UI", 11, "bold"), foreground="#E2E8F0")
 style.configure("Field.TLabel", font=("Segoe UI", 10), foreground="#E2E8F0")
+style.configure("Caption.TLabel", font=("Segoe UI", 9), foreground="#94a3b8")
 style.configure("Status.TLabel", font=("Segoe UI", 10, "bold"), foreground="#A5B4FC")
 style.configure("Value.TLabel", font=("Segoe UI", 10), foreground="#E2E8F0")
 style.configure("Card.TFrame", background="#1f2937")
@@ -90,7 +91,74 @@ def detect_com_ports():
     except Exception:
         return []
 
+
+serial_placeholder = "(Alphanumeric: Max 16 characters)"
+serial_placeholder_color = "#d0d0d1"
+serial_normal_color = "#f8fafc"
+
+
+def is_serial_valid(value: str) -> bool:
+    return len(value) == 16 and value.isalnum()
+
+
+def validate_serial_entry(new_value: str) -> bool:
+    if new_value == "" or new_value == serial_placeholder:
+        return True
+    return len(new_value) <= 16 and new_value.isalnum()
+
+
+def clear_serial_placeholder(event):
+    current = field_vars["serial"].get()
+    if current == serial_placeholder:
+        field_vars["serial"].set("")
+        event.widget.configure(foreground=serial_normal_color)
+
+
+def restore_serial_placeholder(event):
+    current = field_vars["serial"].get().strip()
+    if current == "":
+        field_vars["serial"].set(serial_placeholder)
+        event.widget.configure(foreground=serial_placeholder_color)
+
+
+def is_vin_valid(value: str) -> bool:
+    return len(value) == 17 and value.isalnum()
+
+
+def validate_vin_entry(new_value: str) -> bool:
+    if new_value == "":
+        return True
+    return len(new_value) <= 17 and new_value.isalnum()
+
+
+def is_registration_valid(value: str) -> bool:
+    return len(value) == 12 and value.isalnum()
+
+
+def validate_registration_entry(new_value: str) -> bool:
+    if new_value == "":
+        return True
+    return len(new_value) <= 12 and new_value.isalnum()
+
+
+def is_integer_in_range(value: str, min_value: int, max_value: int) -> bool:
+    if not value.isdigit():
+        return False
+    try:
+        numeric = int(value)
+    except ValueError:
+        return False
+    return min_value <= numeric <= max_value
+
+
+def validate_numeric_range_entry(new_value: str, max_digits: int) -> bool:
+    if new_value == "":
+        return True
+    return len(new_value) <= max_digits and new_value.isdigit()
+
+
 field_vars = {}
+serial_entry_widget = None
 field_rows = [
     ("Tag ID Storage", "tag_id"),
     ("Serial Number Storage", "serial"),
@@ -106,15 +174,42 @@ for row_index, (label_text, var_name) in enumerate(field_rows):
     ttkb.Label(form_grid, text=label_text, style="Field.TLabel").grid(
         row=row_index * 2, column=0, columnspan=2, sticky="w", pady=(0, 4)
     )
+
     field_vars[var_name] = tk.StringVar()
     entry_state = "normal"
-    ttkb.Entry(
-        form_grid,
-        textvariable=field_vars[var_name],
-        width=38,
-        bootstyle="info",
-        state=entry_state,
-    ).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+    entry_options = {
+        "textvariable": field_vars[var_name],
+        "width": 38,
+        "bootstyle": "info",
+        "state": entry_state,
+    }
+    if var_name == "serial":
+        entry_options["validate"] = "key"
+        entry_options["validatecommand"] = (root.register(validate_serial_entry), "%P")
+        serial_entry_widget = ttkb.Entry(form_grid, **entry_options)
+        serial_entry_widget.grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+        serial_entry_widget.bind("<FocusIn>", clear_serial_placeholder)
+        serial_entry_widget.bind("<FocusOut>", restore_serial_placeholder)
+        field_vars["serial"].set(serial_placeholder)
+        serial_entry_widget.configure(foreground=serial_placeholder_color)
+    elif var_name == "vin":
+        entry_options["validate"] = "key"
+        entry_options["validatecommand"] = (root.register(validate_vin_entry), "%P")
+        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+    elif var_name == "registration":
+        entry_options["validate"] = "key"
+        entry_options["validatecommand"] = (root.register(validate_registration_entry), "%P")
+        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+    elif var_name == "axle":
+        entry_options["validate"] = "key"
+        entry_options["validatecommand"] = (root.register(validate_numeric_range_entry), "%P", 5)
+        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+    elif var_name == "gvw":
+        entry_options["validate"] = "key"
+        entry_options["validatecommand"] = (root.register(validate_numeric_range_entry), "%P", 10)
+        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+    else:
+        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
     ttkb.Button(
         form_grid,
         text="Read",
@@ -128,8 +223,15 @@ button_frame.pack(fill="x", pady=(1, 0))
 
 button_center = ttkb.Frame(button_frame)
 button_center.pack(anchor="center")
-def read_field(field_name):
+def get_field_value(field_name: str) -> str:
     value = field_vars[field_name].get().strip()
+    if field_name == "serial" and value == serial_placeholder:
+        return ""
+    return value
+
+
+def read_field(field_name):
+    value = get_field_value(field_name)
     if value:
         write_log(f"Read field '{field_name}' : {value}", log_console)
         messagebox.showinfo("Read Field", f"{field_name.replace('_', ' ').title()} loaded.")
@@ -139,13 +241,95 @@ def read_field(field_name):
 
 
 def write_tag():
+    serial_value = field_vars["serial"].get().strip()
+    if serial_value and not is_serial_valid(serial_value):
+        write_log(
+            "Write Tag failed: Serial Number Storage must be exactly 16 alphanumeric characters",
+            log_console,
+        )
+        messagebox.showerror(
+            "Validation Error",
+            "Serial Number Storage must be exactly 16 alphanumeric characters.",
+        )
+        return
+
+    vin_value = field_vars["vin"].get().strip()
+    if vin_value and not is_vin_valid(vin_value):
+        write_log(
+            "Write Tag failed: VIN Storage must be exactly 17 alphanumeric characters",
+            log_console,
+        )
+        messagebox.showerror(
+            "Validation Error",
+            "VIN Storage must be exactly 17 alphanumeric characters.",
+        )
+        return
+
+    registration_value = field_vars["registration"].get().strip()
+    if registration_value and not is_registration_valid(registration_value):
+        write_log(
+            "Write Tag failed: Registration No. must be exactly 12 alphanumeric characters",
+            log_console,
+        )
+        messagebox.showerror(
+            "Validation Error",
+            "Registration No. must be exactly 12 alphanumeric characters.",
+        )
+        return
+
+    axle_value = field_vars["axle"].get().strip()
+    if axle_value:
+        if not axle_value.isdigit():
+            write_log(
+                "Write Tag failed: Axle Count Storage must contain only numeric digits",
+                log_console,
+            )
+            messagebox.showerror(
+                "Validation Error",
+                "Axle Count Storage must contain only numeric digits.",
+            )
+            return
+        if not is_integer_in_range(axle_value, 0, 65535):
+            write_log(
+                "Write Tag failed: Axle Count Storage must be between 0 and 65535",
+                log_console,
+            )
+            messagebox.showerror(
+                "Validation Error",
+                "Axle Count Storage must be a number between 0 and 65535.",
+            )
+            return
+
+    gvw_value = field_vars["gvw"].get().strip()
+    if gvw_value:
+        if not gvw_value.isdigit():
+            write_log(
+                "Write Tag failed: GVW/GCW Storage must contain only numeric digits",
+                log_console,
+            )
+            messagebox.showerror(
+                "Validation Error",
+                "GVW/GCW Storage must contain only numeric digits.",
+            )
+            return
+        if not is_integer_in_range(gvw_value, 0, 4294967295):
+            write_log(
+                "Write Tag failed: GVW/GCW Storage must be between 0 and 4294967295",
+                log_console,
+            )
+            messagebox.showerror(
+                "Validation Error",
+                "GVW/GCW Storage must be a number between 0 and 4294967295.",
+            )
+            return
+
     values = [field_vars[name].get().strip() for _, name in field_rows]
-    if all(values):
+    if any(values):
         write_log("Write Tag request submitted", log_console)
         messagebox.showinfo("Write Tag", "Tag data is ready to write.")
     else:
-        write_log("Write Tag failed: missing fields", log_console)
-        messagebox.showwarning("Write Tag", "Fill all tag fields before writing.")
+        write_log("Write Tag failed: no tag fields entered", log_console)
+        messagebox.showwarning("Write Tag", "Enter at least one field before writing.")
 
 
 def clear_fields():
@@ -455,31 +639,9 @@ def connect_reader():
         write_log("Reader already connected", log_console)
         return
 
-    ports = detect_com_ports()
-    if not ports:
-        ports = ["COM8", "COM9", "COM10"]
-        write_log("No COM ports detected", log_console)
-
-    port_combobox.configure(values=ports)
-
-    selected_port = port_var.get()
-    if selected_port not in ports:
-        messagebox.showwarning(
-            "Connect Reader",
-            "The selected COM port is not available. Please select a valid port."
-        )
-        write_log("Selected COM port unavailable", log_console)
-        return
-
-    probe_reader = SerialReader(selected_port, int(baud_var.get()))
-    if not probe_reader.probe_port(selected_port, int(baud_var.get())):
-        messagebox.showwarning(
-            "Connect Reader",
-            f"Selected port {selected_port} is not transmitting or receiving data."
-        )
-        write_log(f"Selected port {selected_port} inactive", log_console)
-        return
-
+    selected_port = "COM3"
+    port_var.set(selected_port)
+    port_combobox.configure(values=[selected_port])
     success = reader.connect(
         port=selected_port,
         baudrate=int(baud_var.get()),
