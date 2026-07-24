@@ -66,14 +66,11 @@ class SerialReader:
             try:
                 if self.ser.in_waiting:
                     raw = self.ser.read(self.ser.in_waiting)
+
                     if raw:
+                        # Store ONLY raw bytes
                         self.raw_queue.put(raw)
-                        try:
-                            line = raw.decode("utf-8", errors="ignore").strip()
-                        except Exception:
-                            line = ""
-                        if line:
-                            self.queue.put(line)
+
             except Exception as e:
                 self.queue.put(f"UART Error : {e}")
                 self.disconnect()

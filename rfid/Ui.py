@@ -679,19 +679,44 @@ def stop_scan():
     write_log("Stop scan", log_console)
 
 
+rx_buffer = bytearray()
+
+
 def update_gui():
+    global rx_buffer
+
     while True:
-        data = reader.get_data()
-        if data is None:
+
+        raw = reader.get_raw_data()
+
+        if raw is None:
             break
-        write_log(f"UART RX : {data}", log_console)
-        if data.startswith("TAG:"):
-            tag = data.replace("TAG:", "").strip()
-            field_vars["tag_id"].set(tag)
-            tag_present.set("Yes")
-            reader_status.set("Tag detected")
-            write_log(f"Tag detected: {tag}", log_console)
-    root.after(100, update_gui)
+
+        rx_buffer.extend(raw)
+
+        while True:
+
+            try:
+                start = rx_buffer.index(0x24)
+            except ValueError:
+                rx_buffer.clear()
+                break
+
+            try:
+                end = rx_buffer.index(0x23, start)
+            except ValueError:
+                break
+
+            frame = bytes(rx_buffer[start:end + 1])
+
+            del rx_buffer[:end + 1]
+
+            write_log(
+                f"UART RX (hex): {frame.hex().upper()}",
+                log_console
+            )
+
+    root.after(50, update_gui)
 
 
 def _hex_bytes_from_text(s: str):
@@ -722,7 +747,7 @@ def handle_paste_to_log(event=None):
     # send bytes to reader if connected
     sent = False
     if reader.is_connected():
-        sent = reader.write_bytes(hb)
+        reader.write_bytes(hb)
         write_log(f"UART TX (hex): {hb.hex().upper()}", log_console)
     else:
         write_log("UART TX ignored: reader not connected", log_console)
@@ -733,37 +758,37 @@ def handle_paste_to_log(event=None):
     import time
 
     end_time = time.time() + 0.5
-    buffer = b""
-    while time.time() < end_time:
-        raw = reader.get_raw_data()
-        if raw is None:
-            time.sleep(0.05)
-            continue
-        if isinstance(raw, bytes):
-            buffer += raw
-        else:
-            try:
-                buffer += bytes(raw)
-            except Exception:
-                continue
+    # buffer = b""
+    # while time.time() < end_time:
+    #     raw = reader.get_raw_data()
+    #     if raw is None:
+    #         time.sleep(0.05)
+    #         continue
+    #     if isinstance(raw, bytes):
+    #         buffer += raw
+    #     else:
+    #         try:
+    #             buffer += bytes(raw)
+    #         except Exception:
+    #             continue
 
-    # scan buffer for frames that start with 0x24 and end with 0x23
-    frames = []
-    i = 0
-    while i < len(buffer):
-        if buffer[i] == 0x24:
-            # find next 0x23 after i
-            j = buffer.find(bytes([0x23]), i + 1)
-            if j != -1:
-                frames.append(buffer[i : j + 1])
-                i = j + 1
-                continue
-        i += 1
+    # # scan buffer for frames that start with 0x24 and end with 0x23
+    # frames = []
+    # i = 0
+    # while i < len(buffer):
+    #     if buffer[i] == 0x24:
+    #         # find next 0x23 after i
+    #         j = buffer.find(bytes([0x23]), i + 1)
+    #         if j != -1:
+    #             frames.append(buffer[i : j + 1])
+    #             i = j + 1
+    #             continue
+    #     i += 1
 
-    if buffer:
-        write_log(f"UART RX (hex full): {buffer.hex().upper()}", log_console)
-    for f in frames:
-        write_log(f"UART RX (hex frame): {f.hex().upper()}", log_console)
+    # if buffer:
+    #     write_log(f"UART RX (hex full): {buffer.hex().upper()}", log_console)
+    # for f in frames:
+    #     write_log(f"UART RX (hex frame): {f.hex().upper()}", log_console)
 
 
 # bind paste event on log_console widget (handle Ctrl+V)
