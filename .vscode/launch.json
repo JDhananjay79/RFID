@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Debug Current Pytest File",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "args": [
+                "-s",
+                "${file}",
+                "${input:runtimeArgs}"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "runtimeArgs",
+            "type": "promptString",
+            "description": "Enter your runtime arguments (e.g., --env staging --threads 4)",
+            "default": ""
+        }
+    ]
+}

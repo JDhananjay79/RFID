@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Activate Environment",
+            "type": "shell",
+            "windows": {
+                "command": "${workspaceFolder}/.venv/Scripts/activate.bat"
+            },
+            "osx": {
+                "command": "source ${workspaceFolder}/.venv/bin/activate"
+            },
+            "linux": {
+                "command": "source ${workspaceFolder}/.venv/bin/activate"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
