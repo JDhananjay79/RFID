@@ -54,7 +54,9 @@ if photo:
     logo_label.image = photo
     logo_label.pack(side="left", padx=(0, 20), pady=(10, 10))
 
-header_text = ttkb.Label(header_frame, text="Event-Based Parameter Reader & Writer", style="Title.TLabel")
+header_text = ttkb.Label(
+    header_frame, text="Event-Based Parameter Reader & Writer", style="Title.TLabel"
+)
 header_text.pack(side="left", pady=10)
 
 version_label = ttkb.Label(
@@ -84,6 +86,7 @@ form_container.pack_propagate(False)
 form_grid = ttkb.Frame(form_container)
 form_grid.pack(anchor="nw", padx=10, pady=10)
 
+
 def detect_com_ports():
     try:
         ports = [port.device for port in list_ports.comports()]
@@ -95,6 +98,10 @@ def detect_com_ports():
 serial_placeholder = "(Alphanumeric: Max 16 characters)"
 serial_placeholder_color = "#d0d0d1"
 serial_normal_color = "#f8fafc"
+vin_placeholder = "(Alphanumeric: Max 17 Characters)"
+axle_placeholder = "(Numeric: 0 to 65535)"
+gvw_placeholder = "(Numeric: 0 to 4294967295)"
+registration_placeholder = "(Alphanumeric: Max 12 Characters)"
 
 
 def is_serial_valid(value: str) -> bool:
@@ -121,6 +128,67 @@ def restore_serial_placeholder(event):
         event.widget.configure(foreground=serial_placeholder_color)
 
 
+def clear_vin_placeholder(event):
+    current = field_vars["vin"].get()
+
+    if current == vin_placeholder:
+        field_vars["vin"].set("")
+        event.widget.configure(foreground=serial_normal_color)
+
+
+def restore_vin_placeholder(event):
+    current = field_vars["vin"].get().strip()
+
+    if current == "":
+        field_vars["vin"].set(vin_placeholder)
+        event.widget.configure(foreground=serial_placeholder_color)
+
+def clear_axle_placeholder(event):
+    current = field_vars["axle"].get()
+
+    if current == axle_placeholder:
+        field_vars["axle"].set("")
+        event.widget.configure(foreground=serial_normal_color)
+
+
+def restore_axle_placeholder(event):
+    current = field_vars["axle"].get().strip()
+
+    if current == "":
+        field_vars["axle"].set(axle_placeholder)
+        event.widget.configure(foreground=serial_placeholder_color)
+
+
+def clear_gvw_placeholder(event):
+    current = field_vars["gvw"].get()
+
+    if current == gvw_placeholder:
+        field_vars["gvw"].set("")
+        event.widget.configure(foreground=serial_normal_color)
+
+
+def restore_gvw_placeholder(event):
+    current = field_vars["gvw"].get().strip()
+
+    if current == "":
+        field_vars["gvw"].set(gvw_placeholder)
+        event.widget.configure(foreground=serial_placeholder_color)
+
+def clear_registration_placeholder(event):
+    current = field_vars["registration"].get()
+
+    if current == registration_placeholder:
+        field_vars["registration"].set("")
+        event.widget.configure(foreground=serial_normal_color)
+
+
+def restore_registration_placeholder(event):
+    current = field_vars["registration"].get().strip()
+
+    if current == "":
+        field_vars["registration"].set(registration_placeholder)
+        event.widget.configure(foreground=serial_placeholder_color)
+        
 def is_vin_valid(value: str) -> bool:
     return len(value) == 17 and value.isalnum()
 
@@ -159,6 +227,10 @@ def validate_numeric_range_entry(new_value: str, max_digits: int) -> bool:
 
 field_vars = {}
 serial_entry_widget = None
+vin_entry = None
+axle_entry = None
+gvw_entry = None
+registration_entry = None
 field_rows = [
     ("Tag ID Storage", "tag_id"),
     ("Serial Number Storage", "serial"),
@@ -187,46 +259,159 @@ for row_index, (label_text, var_name) in enumerate(field_rows):
         entry_options["validate"] = "key"
         entry_options["validatecommand"] = (root.register(validate_serial_entry), "%P")
         serial_entry_widget = ttkb.Entry(form_grid, **entry_options)
-        serial_entry_widget.grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+        serial_entry_widget.grid(
+            row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10)
+        )
         serial_entry_widget.bind("<FocusIn>", clear_serial_placeholder)
         serial_entry_widget.bind("<FocusOut>", restore_serial_placeholder)
         field_vars["serial"].set(serial_placeholder)
         serial_entry_widget.configure(foreground=serial_placeholder_color)
     elif var_name == "vin":
+        
         entry_options["validate"] = "key"
-        entry_options["validatecommand"] = (root.register(validate_vin_entry), "%P")
-        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+        entry_options["validatecommand"] = (
+            root.register(validate_vin_entry),
+            "%P",
+        )
+        
+        vin_entry = ttkb.Entry(
+            form_grid,
+            **entry_options,
+        )
+
+        vin_entry.grid(
+            row=row_index * 2 + 1,
+            column=0,
+            sticky="w",
+            pady=(0, 10),
+        )
+
+        vin_entry.bind("<FocusIn>", clear_vin_placeholder)
+        vin_entry.bind("<FocusOut>", restore_vin_placeholder)
+
+        field_vars["vin"].set(vin_placeholder)
+        vin_entry.configure(foreground=serial_placeholder_color)
     elif var_name == "registration":
+
         entry_options["validate"] = "key"
-        entry_options["validatecommand"] = (root.register(validate_registration_entry), "%P")
-        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+        entry_options["validatecommand"] = (
+            root.register(validate_registration_entry),
+            "%P",
+    )
+
+        registration_entry = ttkb.Entry(
+            form_grid,
+            **entry_options,
+    )
+
+        registration_entry.grid(
+            row=row_index * 2 + 1,
+            column=0,
+            sticky="w",
+            pady=(0, 10),
+    )
+
+        registration_entry.bind("<FocusIn>", clear_registration_placeholder)
+        registration_entry.bind("<FocusOut>", restore_registration_placeholder)
+
+        field_vars["registration"].set(registration_placeholder)
+        registration_entry.configure(foreground=serial_placeholder_color)
     elif var_name == "axle":
+
         entry_options["validate"] = "key"
-        entry_options["validatecommand"] = (root.register(validate_numeric_range_entry), "%P", 5)
-        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+        entry_options["validatecommand"] = (
+            root.register(validate_numeric_range_entry),
+            "%P",
+            5,
+    )
+
+        axle_entry = ttkb.Entry(
+            form_grid,
+            **entry_options,
+    )
+
+        axle_entry.grid(
+            row=row_index * 2 + 1,
+            column=0,
+            sticky="w",
+            pady=(0, 10),
+    )
+
+        axle_entry.bind("<FocusIn>", clear_axle_placeholder)
+        axle_entry.bind("<FocusOut>", restore_axle_placeholder)
+
+        field_vars["axle"].set(axle_placeholder)
+        axle_entry.configure(foreground=serial_placeholder_color)
+        
     elif var_name == "gvw":
+        
         entry_options["validate"] = "key"
-        entry_options["validatecommand"] = (root.register(validate_numeric_range_entry), "%P", 10)
-        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+        entry_options["validatecommand"] = (
+            root.register(validate_numeric_range_entry),
+            "%P",
+            10,
+    )
+
+        gvw_entry = ttkb.Entry(
+            form_grid,
+            **entry_options,
+    )
+
+        gvw_entry.grid(
+            row=row_index * 2 + 1,
+            column=0,
+            sticky="w",
+            pady=(0, 10),
+    )
+
+        gvw_entry.bind("<FocusIn>", clear_gvw_placeholder)
+        gvw_entry.bind("<FocusOut>", restore_gvw_placeholder)
+
+        field_vars["gvw"].set(gvw_placeholder)
+        gvw_entry.configure(foreground=serial_placeholder_color)
     else:
-        ttkb.Entry(form_grid, **entry_options).grid(row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10))
+        ttkb.Entry(form_grid, **entry_options).grid(
+            row=row_index * 2 + 1, column=0, sticky="w", pady=(0, 10)
+        )
     ttkb.Button(
         form_grid,
         text="Read",
         command=lambda name=var_name: read_field(name),
         bootstyle="info",
         width=10,
-    ).grid(row=row_index * 2 + 1, column=1, sticky="w", padx=(10, 0), pady=(0, 10),)
+    ).grid(
+        row=row_index * 2 + 1,
+        column=1,
+        sticky="w",
+        padx=(10, 0),
+        pady=(0, 10),
+    )
 
 button_frame = ttkb.Frame(form_container)
 button_frame.pack(fill="x", pady=(1, 0))
 
 button_center = ttkb.Frame(button_frame)
 button_center.pack(anchor="center")
+
+
 def get_field_value(field_name: str) -> str:
+
     value = field_vars[field_name].get().strip()
+
     if field_name == "serial" and value == serial_placeholder:
         return ""
+
+    if field_name == "vin" and value == vin_placeholder:
+        return ""
+    if field_name == "axle" and value == axle_placeholder:
+        return ""
+
+    if field_name == "gvw" and value == gvw_placeholder:
+        return ""
+    
+    if field_name == "registration" and value == registration_placeholder:
+        return ""
+
     return value
 
 
@@ -234,7 +419,9 @@ def read_field(field_name):
     value = get_field_value(field_name)
     if value:
         write_log(f"Read field '{field_name}' : {value}", log_console)
-        messagebox.showinfo("Read Field", f"{field_name.replace('_', ' ').title()} loaded.")
+        messagebox.showinfo(
+            "Read Field", f"{field_name.replace('_', ' ').title()} loaded."
+        )
     else:
         write_log(f"Read field '{field_name}' is empty", log_console)
         messagebox.showwarning("Read Field", "This field is empty.")
@@ -333,11 +520,64 @@ def write_tag():
 
 
 def clear_fields():
-    for var in field_vars.values():
+
+    # Clear all fields
+    for name, var in field_vars.items():
         var.set("")
+
+    # Restore Serial placeholder
+    field_vars["serial"].set(serial_placeholder)
+
+    if serial_entry_widget:
+        serial_entry_widget.configure(
+            foreground=serial_placeholder_color
+        )
+
+    # Restore VIN placeholder
+    field_vars["vin"].set(vin_placeholder)
+
+    if vin_entry:
+        vin_entry.configure(
+            foreground=serial_placeholder_color
+        )
+
+    # Restore Axle placeholder
+    field_vars["axle"].set(axle_placeholder)
+
+    try:
+        axle_entry.configure(
+            foreground=serial_placeholder_color
+    )
+    except Exception:
+        pass
+
+
+# Restore GVW placeholder
+    field_vars["gvw"].set(gvw_placeholder)
+
+    try:
+        gvw_entry.configure(
+            foreground=serial_placeholder_color
+    )
+    except Exception:
+        pass
+    
+    # Restore Registration placeholder
+    field_vars["registration"].set(registration_placeholder)
+
+    try:
+        registration_entry.configure(
+            foreground=serial_placeholder_color
+    )
+    except Exception:
+        pass
+    
+    # Reset reader status
     reader_status.set("Idle")
     tag_present.set("No")
+
     write_log("Form cleared", log_console)
+
 
 write_button = ttkb.Button(
     button_center,
@@ -389,7 +629,11 @@ available_ports = detect_com_ports()
 if not available_ports:
     available_ports = ["COM1", "COM2", "COM3", "COM4", "COM5"]
 
-default_port = PORT if PORT in available_ports else (available_ports[0] if available_ports else PORT)
+default_port = (
+    PORT
+    if PORT in available_ports
+    else (available_ports[0] if available_ports else PORT)
+)
 port_var = tk.StringVar(value=default_port)
 available_baud_rates = ["9600", "19200", "38400", "57600", "115200"]
 
@@ -495,7 +739,9 @@ tag_present = tk.StringVar(value="No")
 
 status_title = ttkb.Label(reader_frame, text="Status:", style="Field.TLabel")
 status_title.grid(row=0, column=0, sticky="w", pady=(0, 10))
-status_value = ttkb.Label(reader_frame, textvariable=reader_status, style="Value.TLabel")
+status_value = ttkb.Label(
+    reader_frame, textvariable=reader_status, style="Value.TLabel"
+)
 status_value.grid(row=0, column=1, sticky="w", padx=(10, 36), pady=(0, 10))
 
 present_title = ttkb.Label(reader_frame, text="Tag Present:", style="Field.TLabel")
@@ -544,6 +790,7 @@ controls_subframe.pack(fill="x", pady=(0, 8))
 
 auto_save_var = tk.BooleanVar(value=False)
 log_path_var = tk.StringVar(value=LOG_DEFAULT_PATH)
+
 
 def browse_log_path():
     path = filedialog.asksaveasfilename(
@@ -602,6 +849,7 @@ log_console.pack(fill="both", expand=True)
 
 write_log("RFID Communicator started", log_console)
 
+
 def _set_connection_state(connected: bool):
     if connected:
         status_var.set("Connected")
@@ -630,6 +878,7 @@ def populate_com_ports():
     port_combobox.configure(values=ports)
     if port_var.get() not in ports:
         port_var.set(ports[0])
+
 
 populate_com_ports()
 
@@ -707,14 +956,11 @@ def update_gui():
             except ValueError:
                 break
 
-            frame = bytes(rx_buffer[start:end + 1])
+            frame = bytes(rx_buffer[start : end + 1])
 
-            del rx_buffer[:end + 1]
+            del rx_buffer[: end + 1]
 
-            write_log(
-                f"UART RX (hex): {frame.hex().upper()}",
-                log_console
-            )
+            write_log(f"UART RX (hex): {frame.hex().upper()}", log_console)
 
     root.after(50, update_gui)
 
@@ -758,40 +1004,8 @@ def handle_paste_to_log(event=None):
     import time
 
     end_time = time.time() + 0.5
-    # buffer = b""
-    # while time.time() < end_time:
-    #     raw = reader.get_raw_data()
-    #     if raw is None:
-    #         time.sleep(0.05)
-    #         continue
-    #     if isinstance(raw, bytes):
-    #         buffer += raw
-    #     else:
-    #         try:
-    #             buffer += bytes(raw)
-    #         except Exception:
-    #             continue
-
-    # # scan buffer for frames that start with 0x24 and end with 0x23
-    # frames = []
-    # i = 0
-    # while i < len(buffer):
-    #     if buffer[i] == 0x24:
-    #         # find next 0x23 after i
-    #         j = buffer.find(bytes([0x23]), i + 1)
-    #         if j != -1:
-    #             frames.append(buffer[i : j + 1])
-    #             i = j + 1
-    #             continue
-    #     i += 1
-
-    # if buffer:
-    #     write_log(f"UART RX (hex full): {buffer.hex().upper()}", log_console)
-    # for f in frames:
-    #     write_log(f"UART RX (hex frame): {f.hex().upper()}", log_console)
 
 
-# bind paste event on log_console widget (handle Ctrl+V)
 try:
     log_console.bind("<Control-v>", lambda e: handle_paste_to_log(e))
     log_console.bind("<Control-V>", lambda e: handle_paste_to_log(e))
@@ -814,6 +1028,7 @@ def toggle_logging(event=None):
     global logging_enabled
     logging_enabled = not logging_enabled
     write_log("Logging Started" if logging_enabled else "Logging Stopped", log_console)
+
 
 root.bind("<space>", toggle_logging)
 root.after(100, update_gui)
