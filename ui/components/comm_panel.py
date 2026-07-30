@@ -5,6 +5,19 @@ from serial.tools import list_ports
 from config import PORT, BAUDRATE
 from logger import write_log
 
+# Negative Response Error Codes (VLTD Protocol Spec)
+ERROR_CODES = {
+    0x00: "AEPL_RFID_RESULT_OK: Request processed successfully.",
+    0x01: "AEPL_RFID_RESULT_INVALID_PARAMETER: Invalid or NULL input parameter.",
+    0x02: "AEPL_RFID_RESULT_INVALID_FRAME: Invalid or malformed request frame.",
+    0x03: "AEPL_RFID_RESULT_INVALID_ECU_ID: Unsupported or incorrect ECU ID.",
+    0x04: "AEPL_RFID_RESULT_INVALID_LENGTH: Frame length does not match expected value.",
+    0x05: "AEPL_RFID_RESULT_CRC_ERROR: CRC verification failed.",
+    0x06: "AEPL_RFID_RESULT_UNSUPPORTED_COMMAND: Requested Command ID is not supported.",
+    0x07: "AEPL_RFID_RESULT_DATA_UNAVAILABLE: Requested parameter is unavailable.",
+    0x08: "AEPL_RFID_RESULT_TX_FAILED: Failed to transmit response frame.",
+}
+
 
 def detect_com_ports():
     try:
@@ -15,32 +28,44 @@ def detect_com_ports():
 
 
 class CommPanelFrame:
-    """Component managing serial communication settings and non-blocking connect/disconnect controls."""
+    """Component managing serial communication settings and screenshot-matched Diagnostic Result Cards."""
 
     def __init__(self, parent_frame, reader, log_console_getter, on_connection_change_cb):
         self.reader = reader
         self.get_log_console = log_console_getter
         self.on_connection_change_cb = on_connection_change_cb
 
-        # Register async disconnect callback with SerialReader
         self.reader.set_disconnect_callback(self._on_async_disconnect)
 
+        # Main horizontal container holding Communication & Diagnostic Panel
+        self.container_frame = ttkb.Frame(parent_frame)
+        self.container_frame.pack(fill="x", expand=True)
+
+        # Communication Settings Frame
         self.communication_frame = tk.LabelFrame(
-            parent_frame,
-            text="Communication",
-            padx=18,
-            pady=18,
+            self.container_frame,
+            text="Communication Settings",
+            padx=14,
+            pady=12,
             bg="#1f2937",
             fg="#f8fafc",
             font=("Segoe UI", 11, "bold"),
         )
-        self.communication_frame.pack(side="left", fill="y", expand=False, padx=(0, 10), pady=(0, 4))
-        self.communication_frame.configure(width=400)
-        self.communication_frame.columnconfigure(1, weight=1)
-        self.communication_frame.columnconfigure(3, weight=1)
+        self.communication_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+
+        # Diagnostic Result Section (Matching Screenshots)
+        self.diag_frame = tk.LabelFrame(
+            self.container_frame,
+            text="Diagnostic Results",
+            padx=14,
+            pady=12,
+            bg="#1f2937",
+            fg="#f8fafc",
+            font=("Segoe UI", 11, "bold"),
+        )
+        self.diag_frame.pack(side="left", fill="both", expand=True, padx=(0, 0))
 
         self.medium_var = tk.StringVar(value="UART")
-        self.status_var = tk.StringVar(value="Disconnected")
         self.baud_var = tk.StringVar(value=str(BAUDRATE))
 
         ports = detect_com_ports()
@@ -49,28 +74,26 @@ class CommPanelFrame:
         default_port = PORT if PORT in ports else ports[0]
         self.port_var = tk.StringVar(value=default_port)
 
-        self._build_widgets(ports)
+        self._build_comm_widgets(ports)
+        self._build_diag_card()
+        self.show_disconnected()
 
-    def _build_widgets(self, available_ports):
+    def _build_comm_widgets(self, available_ports):
         available_baud_rates = ["9600", "19200", "38400", "57600", "115200"]
         self.port_combobox = None
 
         fields = [
-            ("Medium", self.medium_var, ["UART", "PCAN"]),
+            ("Medium", self.medium_var, ["UART", "CAN"]),
             ("COM Port", self.port_var, available_ports),
             ("Baud Rate", self.baud_var, available_baud_rates),
         ]
 
-        for label_text, variable, values in fields:
-            if label_text == "Medium":
-                row, col, grid_padx, grid_pady = 0, 0, (12, 24), (0, 10)
-            elif label_text == "COM Port":
-                row, col, grid_padx, grid_pady = 0, 2, (12, 0), (0, 10)
-            else:
-                row, col, grid_padx, grid_pady = 1, 0, (12, 0), (0, 16)
+        for idx, (label_text, variable, values) in enumerate(fields):
+            row = 0 if idx < 2 else 1
+            col = (idx % 2) * 2
 
             ttkb.Label(self.communication_frame, text=label_text, style="Field.TLabel").grid(
-                row=row, column=col, sticky="w", pady=(0, 10)
+                row=row, column=col, sticky="w", pady=(0, 6), padx=(0, 4)
             )
             combobox = ttkb.Combobox(
                 self.communication_frame,
@@ -78,25 +101,23 @@ class CommPanelFrame:
                 values=values,
                 state="readonly",
                 bootstyle="info",
-                width=18,
+                width=13,
             )
-            combobox.grid(row=row, column=col + 1, sticky="w", padx=grid_padx, pady=grid_pady)
+            combobox.grid(row=row, column=col + 1, sticky="w", padx=(4, 10), pady=(0, 6))
             if label_text == "COM Port":
                 self.port_combobox = combobox
 
         button_frame_comm = ttkb.Frame(self.communication_frame)
-        button_frame_comm.grid(row=2, column=0, columnspan=3, pady=(16, 0), sticky="ew")
-        button_frame_comm.columnconfigure(0, weight=1)
-        button_frame_comm.columnconfigure(1, weight=1)
-        button_frame_comm.columnconfigure(2, weight=1)
+        button_frame_comm.grid(row=2, column=0, columnspan=4, pady=(8, 0), sticky="ew")
 
         self.connect_button = ttkb.Button(
             button_frame_comm,
             text="Connect",
             command=self.connect_reader,
             bootstyle="success",
+            width=11,
         )
-        self.connect_button.grid(row=0, column=0, sticky="ew", padx=(0, 14))
+        self.connect_button.pack(side="left", padx=(0, 8))
 
         self.disconnect_button = ttkb.Button(
             button_frame_comm,
@@ -104,14 +125,117 @@ class CommPanelFrame:
             command=self.disconnect_reader,
             bootstyle="danger",
             state="disabled",
+            width=11,
         )
-        self.disconnect_button.grid(row=0, column=1, sticky="ew", padx=(14, 14))
+        self.disconnect_button.pack(side="left")
 
-        status_frame = ttkb.Frame(button_frame_comm)
-        status_frame.grid(row=0, column=2, sticky="w", padx=(14, 0))
+    def _build_diag_card(self):
+        """Build Card UI for Disconnected / Connected / PASS / FAIL results."""
+        self.card_container = tk.Frame(
+            self.diag_frame,
+            bg="#111827",
+            highlightthickness=1,
+            highlightbackground="#374151",
+        )
+        self.card_container.pack(fill="both", expand=True, padx=4, pady=4)
 
-        ttkb.Label(status_frame, text="Status:", style="Field.TLabel").pack(side="left", padx=(0, 4))
-        ttkb.Label(status_frame, textvariable=self.status_var, style="Value.TLabel").pack(side="left")
+        # Left Vertical Accent Bar
+        self.accent_bar = tk.Frame(self.card_container, bg="#4B5563", width=5)
+        self.accent_bar.pack(side="left", fill="y", padx=(0, 12))
+
+        # Canvas icon (circular icon)
+        self.icon_canvas = tk.Canvas(
+            self.card_container,
+            width=48,
+            height=48,
+            bg="#111827",
+            highlightthickness=0,
+        )
+        self.icon_canvas.pack(side="left", padx=(0, 12), pady=10)
+
+        # Right Text Box (Title + Subtext)
+        self.text_frame = tk.Frame(self.card_container, bg="#111827")
+        self.text_frame.pack(side="left", fill="both", expand=True, pady=8)
+
+        self.title_label = tk.Label(
+            self.text_frame,
+            text="Disconnected",
+            font=("Segoe UI", 15, "bold"),
+            fg="#9CA3AF",
+            bg="#111827",
+            anchor="w",
+        )
+        self.title_label.pack(fill="x", anchor="w")
+
+        self.subtext_label = tk.Label(
+            self.text_frame,
+            text="Connect a port to continue.",
+            font=("Segoe UI", 10),
+            fg="#9CA3AF",
+            bg="#111827",
+            anchor="w",
+            justify="left",
+            wraplength=420,
+        )
+        self.subtext_label.pack(fill="x", anchor="w", pady=(2, 0))
+
+    def draw_icon(self, status_type: str):
+        self.icon_canvas.delete("all")
+        if status_type == "disconnected":
+            # Outer gray circle + inner dot
+            self.icon_canvas.create_oval(6, 6, 42, 42, outline="#6B7280", width=3)
+            self.icon_canvas.create_oval(22, 22, 26, 26, fill="#6B7280", outline="")
+        elif status_type == "connected":
+            # Outer green circle + inner green dot
+            self.icon_canvas.create_oval(6, 6, 42, 42, outline="#10B981", width=3)
+            self.icon_canvas.create_oval(20, 20, 28, 28, fill="#10B981", outline="")
+        elif status_type == "pass":
+            # Outer green circle + checkmark
+            self.icon_canvas.create_oval(6, 6, 42, 42, outline="#10B981", width=3)
+            self.icon_canvas.create_line(16, 24, 22, 30, 32, 18, fill="#10B981", width=3, capstyle="round", joinstyle="round")
+        elif status_type == "fail":
+            # Outer red circle + cross
+            self.icon_canvas.create_oval(6, 6, 42, 42, outline="#EF4444", width=3)
+            self.icon_canvas.create_line(18, 18, 30, 30, fill="#EF4444", width=3, capstyle="round")
+            self.icon_canvas.create_line(30, 18, 18, 30, fill="#EF4444", width=3, capstyle="round")
+
+    def show_disconnected(self):
+        self.accent_bar.configure(bg="#4B5563")
+        self.draw_icon("disconnected")
+        self.title_label.configure(text="Disconnected", fg="#9CA3AF")
+        self.subtext_label.configure(text="Connect a port to continue.", fg="#9CA3AF")
+
+    def show_connected(self, port: str = "", baud: int = 115200):
+        self.accent_bar.configure(bg="#10B981")  # Emerald green
+        self.draw_icon("connected")
+        self.title_label.configure(text="Connected", fg="#10B981")
+        self.subtext_label.configure(
+            text=f"Port: {port} @ {baud} Baud | Ready for transmission.",
+            fg="#E2E8F0",
+        )
+
+    def show_pass(self, payload_hex: str):
+        self.accent_bar.configure(bg="#10B981")
+        self.draw_icon("pass")
+        self.title_label.configure(text="PASS", fg="#10B981")
+        self.subtext_label.configure(
+            text=f"Positive response: {payload_hex}",
+            fg="#E2E8F0",
+        )
+
+    def show_fail(self, error_code: int = None, description: str = ""):
+        self.accent_bar.configure(bg="#EF4444")
+        self.draw_icon("fail")
+        self.title_label.configure(text="FAIL", fg="#EF4444")
+        
+        if error_code is not None and error_code in ERROR_CODES:
+            sub = f"Error 0x{error_code:02X}: {ERROR_CODES[error_code]}"
+        elif description:
+            sub = f"Failure: {description}"
+        else:
+            sub = "Negative response or CRC verification error."
+
+        self.subtext_label.configure(text=sub, fg="#FCA5A5")
 
     def populate_com_ports(self):
         ports = detect_com_ports()
@@ -134,7 +258,9 @@ class CommPanelFrame:
         except ValueError:
             selected_baud = 115200
 
-        self.status_var.set("Connecting...")
+        self.title_label.configure(text="Connecting...", fg="#FBBF24")
+        self.subtext_label.configure(text=f"Opening {selected_port} @ {selected_baud}...", fg="#FBBF24")
+        self.accent_bar.configure(bg="#FBBF24")
         self.connect_button.configure(state="disabled")
 
         def _do_connect():
@@ -142,9 +268,8 @@ class CommPanelFrame:
                 port=selected_port,
                 baudrate=selected_baud,
             )
-            # Schedule GUI update on main thread for Tcl thread safety
             try:
-                self.communication_frame.after(
+                self.container_frame.after(
                     0, lambda: self._on_connect_finished(success, selected_port, selected_baud)
                 )
             except Exception:
@@ -155,14 +280,14 @@ class CommPanelFrame:
     def _on_connect_finished(self, success: bool, port: str, baud: int):
         log_console = self.get_log_console()
         if success:
-            self.status_var.set("Connected")
             self.connect_button.configure(state="disabled")
             self.disconnect_button.configure(state="normal")
-            write_log(f"Connected to {port} @ {baud}", log_console)
+            self.show_connected(port, baud)
+            write_log(f"Connected to {port} @ {baud} via {self.medium_var.get()}", log_console)
             if callable(self.on_connection_change_cb):
                 self.on_connection_change_cb(True)
         else:
-            self.status_var.set("Disconnected")
+            self.show_disconnected()
             self.connect_button.configure(state="normal")
             self.disconnect_button.configure(state="disabled")
             write_log(f"Failed to connect to {port}", log_console)
@@ -170,14 +295,13 @@ class CommPanelFrame:
                 self.on_connection_change_cb(False)
 
     def _on_async_disconnect(self):
-        """Handle background thread disconnection gracefully on UI thread."""
         try:
-            self.communication_frame.after(0, self._process_async_disconnect)
+            self.container_frame.after(0, self._process_async_disconnect)
         except Exception:
             pass
 
     def _process_async_disconnect(self):
-        self.status_var.set("Disconnected")
+        self.show_disconnected()
         self.connect_button.configure(state="normal")
         self.disconnect_button.configure(state="disabled")
         write_log("Reader connection lost or closed", self.get_log_console())
@@ -188,7 +312,7 @@ class CommPanelFrame:
         def _do_disconnect():
             self.reader.disconnect()
             try:
-                self.communication_frame.after(0, self._process_async_disconnect)
+                self.container_frame.after(0, self._process_async_disconnect)
             except Exception:
                 pass
 

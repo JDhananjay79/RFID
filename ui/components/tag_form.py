@@ -18,6 +18,7 @@ from validation import (
     validate_numeric_range_entry,
 )
 from logger import write_log
+from communication.protocol import build_write_transmission_frame
 
 FIELD_ROWS = [
     ("Tag ID Storage", "tag_id"),
@@ -27,17 +28,16 @@ FIELD_ROWS = [
     ("VIN Storage", "vin"),
     ("Registration No.", "registration"),
     ("Axle Count Storage", "axle"),
-    ("Insurance Information", "insurance"),
 ]
 
 READ_COMMANDS = {
-    "tag_id": "24110100E1F023",        # Read Tag EPC (0x00) -> Hex As-Is
-    "serial": "24110101F1D123",        # Serial Reader Number (0x01) -> Alphanumeric
-    "vin": "24110102C1B223",           # Trailer VIN (0x02) -> Alphanumeric
-    "axle": "24110103D19323",          # Axle Count (0x03) -> Numerical
-    "registration": "24110104A17423",  # Registration Number (0x04) -> Alphanumeric
-    "gvw": "24110105B15523",           # Trailer Gross Weight (0x05) -> Decimal
-    "cert": "24110106813623",          # Meta Data / TA Cert (0x06) -> Hex As-Is
+    "tag_id": ("24110100E1F023", "hex as it is", "Tag ID Storage", 0x00),
+    "serial": ("24110101F1D123", "alphanumeric", "Serial Number Storage", 0x01),
+    "vin": ("24110102C1B223", "alphanumeric", "VIN Storage", 0x02),
+    "axle": ("24110103D19323", "numerical", "Axle Count Storage", 0x03),
+    "registration": ("24110104A17423", "alphanumeric", "Registration No.", 0x04),
+    "gvw": ("24110105B15523", "decimal", "GVW/GCW Storage", 0x05),
+    "cert": ("24110106813623", "hex as it is", "TA Certification Storage", 0x06),
 }
 
 PLACEHOLDERS = {
@@ -48,8 +48,8 @@ PLACEHOLDERS = {
     "registration": REGISTRATION_PLACEHOLDER,
 }
 
-PLACEHOLDER_COLOR = "#d0d0d1"
-NORMAL_COLOR = "#f8fafc"
+PLACEHOLDER_COLOR = "#9CA3AF"
+NORMAL_COLOR = "#F9FAFB"
 
 
 class TagFormFrame:
@@ -63,10 +63,11 @@ class TagFormFrame:
 
         self.field_vars = {}
         self.entry_widgets = {}
+        self.pending_requests = {}  # Maps param_id -> dict of command metadata
 
         self.form_container = tk.LabelFrame(
             parent_frame,
-            text="Tag Data",
+            text="Tag Data Fields",
             padx=20,
             pady=20,
             bg="#1f2937",
@@ -185,7 +186,6 @@ class TagFormFrame:
         button_center = ttkb.Frame(button_frame)
         button_center.pack(anchor="center")
 
-        # Renamed from Write Tag (All) to Read All
         ttkb.Button(
             button_center,
             text="Read All",
@@ -231,12 +231,18 @@ class TagFormFrame:
         log_console = self.get_log_console()
 
         if field_name in READ_COMMANDS:
-            cmd_hex = READ_COMMANDS[field_name]
+            cmd_hex, conv_type, field_label, param_id = READ_COMMANDS[field_name]
             cmd_bytes = bytes.fromhex(cmd_hex)
             if self.reader.is_connected():
+                self.pending_requests[param_id] = {
+                    "Name": field_label,
+                    "Operation": "Read",
+                    "Command Sent": cmd_hex,
+                    "Conversion": conv_type,
+                    "var_name": field_name,
+                }
                 self.reader.write_bytes(cmd_bytes)
-                write_log(f"UART TX (hex): {cmd_hex.upper()}", log_console)
-                write_log(f"Read command sent for {field_name.replace('_', ' ').title()}", log_console)
+                write_log(f"UART TX Read Command ({field_label}): {cmd_hex}", log_console)
             else:
                 write_log(f"Read command failed for {field_name}: reader not connected", log_console)
                 messagebox.showwarning("Read Field", "Connect the reader before reading.")
@@ -250,7 +256,7 @@ class TagFormFrame:
                 messagebox.showwarning("Read Field", "This field is empty.")
 
     def read_all_fields(self):
-        """Sequentially transmit Read commands for all fields spaced 200ms apart."""
+        """Sequentially transmit Read commands for all fields spaced 300ms apart."""
         log_console = self.get_log_console()
 
         if not self.reader.is_connected():
@@ -258,25 +264,29 @@ class TagFormFrame:
             messagebox.showwarning("Read All", "Connect the reader before reading fields.")
             return
 
-        write_log("Starting Read All fields sequence...", log_console)
+        write_log("Starting Read All fields sequence (300ms delay)...", log_console)
         commands = list(READ_COMMANDS.items())
-        interval_ms = 200  # 200ms delay between command transmissions
+        interval_ms = 200  # 300ms delay between commands
 
         def _send_next(index=0):
             if index >= len(commands):
                 write_log("Read All sequence completed dispatching.", log_console)
                 return
 
-            field_name, cmd_hex = commands[index]
+            field_name, (cmd_hex, conv_type, field_label, param_id) = commands[index]
             if self.reader.is_connected():
                 cmd_bytes = bytes.fromhex(cmd_hex)
+                self.pending_requests[param_id] = {
+                    "Name": field_label,
+                    "Operation": "Read",
+                    "Command Sent": cmd_hex,
+                    "Conversion": conv_type,
+                    "var_name": field_name,
+                }
                 self.reader.write_bytes(cmd_bytes)
-                write_log(
-                    f"UART TX (hex): {cmd_hex.upper()} [{field_name.replace('_', ' ').title()}]",
-                    log_console,
-                )
+                write_log(f"UART TX Read Command ({field_label}): {cmd_hex}", log_console)
 
-            # Schedule next field request after interval_ms
+            # Schedule next field request after 300ms
             self.root.after(interval_ms, lambda: _send_next(index + 1))
 
         _send_next(0)
@@ -285,46 +295,32 @@ class TagFormFrame:
         log_console = self.get_log_console()
         val = self.get_field_value(field_name)
 
-        if field_name == "vin":
-            if not val:
-                write_log("Write VIN failed: VIN box is empty", log_console)
-                messagebox.showwarning("Write Field", "Please enter a VIN before writing.")
-                return
-            if not is_vin_valid(val):
-                write_log(
-                    "Write VIN failed: VIN must be exactly 17 alphanumeric characters",
-                    log_console,
-                )
-                messagebox.showerror(
-                    "Validation Error",
-                    "VIN must be exactly 17 alphanumeric characters.",
-                )
-                return
+        if not val:
+            write_log(f"Write {field_name} failed: field is empty", log_console)
+            messagebox.showwarning("Write Field", f"Please enter a value for {field_name.replace('_', ' ').title()} before writing.")
+            return
 
-            # Convert 17 ASCII characters to hex bytes (padded with 0x00 if needed)
-            vin_ascii_bytes = val.encode("ascii").ljust(17, b"\x00")
-            header_bytes = bytes.fromhex("24120102")  # Start $ (24), Write Cmd (12), Param ID (01 02)
-            footer_bytes = bytes.fromhex("C1B223")    # Checksum (C1 B2), End # (23)
-
-            full_frame = header_bytes + vin_ascii_bytes + footer_bytes
-            frame_hex = full_frame.hex().upper()
-
+        try:
+            # Build 0x29 SET Transmission Frame with CRC-16/CCITT-FALSE
+            frame_bytes, frame_hex, metadata = build_write_transmission_frame(field_name, val)
+            
             if self.reader.is_connected():
-                self.reader.write_bytes(full_frame)
-                write_log(f"UART TX (hex): {frame_hex}", log_console)
-                write_log(f"Write VIN command sent for: {val}", log_console)
-                messagebox.showinfo("Write VIN", f"VIN write frame transmitted:\n{frame_hex}")
+                param_id = int(metadata["Field_ID"], 16) if "Field_ID" in metadata else 0
+                self.pending_requests[param_id] = {
+                    "Name": metadata["Name"],
+                    "Operation": "Write",
+                    "Command Sent": frame_hex,
+                    "Conversion": metadata["Conversion"],
+                    "var_name": field_name,
+                }
+                self.reader.write_bytes(frame_bytes)
+                write_log(f"UART TX Write Transmission Frame ({metadata['Name']}): {frame_hex}", log_console)
             else:
-                write_log("Write VIN command failed: reader not connected", log_console)
-                messagebox.showwarning("Write Field", "Connect the reader before writing VIN.")
-
-        else:
-            if val:
-                write_log(f"Write request submitted for '{field_name}' : {val}", log_console)
-                messagebox.showinfo("Write Field", f"Write data for {field_name.replace('_', ' ').title()} prepared.")
-            else:
-                write_log(f"Write field '{field_name}' is empty", log_console)
-                messagebox.showwarning("Write Field", "Please enter data before writing.")
+                write_log(f"Write command failed for {field_name}: reader not connected", log_console)
+                messagebox.showwarning("Write Field", "Connect the reader before writing.")
+        except Exception as e:
+            write_log(f"Write field error: {e}", log_console)
+            messagebox.showerror("Write Field Error", str(e))
 
     def clear_fields(self):
         for name, var in self.field_vars.items():

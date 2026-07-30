@@ -7,8 +7,6 @@ from logger import write_log
 from ui.components.header import build_header_frame
 from ui.components.tag_form import TagFormFrame
 from ui.components.comm_panel import CommPanelFrame
-# Reader panel component commented out per user request
-# from ui.components.reader_panel import ReaderPanelFrame
 from ui.components.log_panel import LogPanelFrame
 
 
@@ -19,9 +17,9 @@ class RFIDApp:
         self.base_dir = Path(__file__).resolve().parent.parent
 
         self.root = ttkb.Window(themename="darkly")
-        self.root.geometry("1400x850")
+        self.root.geometry("1450x880")
         self.root.minsize(1200, 750)
-        self.root.title("RFID Communicator")
+        self.root.title("RFID Tag Reader & Writer")
 
         self._configure_styles()
         self._set_app_icon()
@@ -55,7 +53,7 @@ class RFIDApp:
             self._on_connection_change,
         )
 
-        # Tag form component (passes reader for UART read/write actions)
+        # Tag form component
         self.tag_form_comp = TagFormFrame(
             self.content_frame,
             self.root,
@@ -70,12 +68,11 @@ class RFIDApp:
     def _configure_styles(self):
         style = ttkb.Style(theme="darkly")
         style.configure("Card.TFrame", background="#1f2937")
+        style.configure("Header.TFrame", background="#111827")
         style.configure("Title.TLabel", font=("Segoe UI", 22, "bold"), foreground="#F8FAFC")
         style.configure("Section.TLabel", font=("Segoe UI", 11, "bold"), foreground="#E2E8F0")
         style.configure("Field.TLabel", font=("Segoe UI", 10), foreground="#E2E8F0")
         style.configure("Caption.TLabel", font=("Segoe UI", 9), foreground="#94a3b8")
-        style.configure("Status.TLabel", font=("Segoe UI", 10, "bold"), foreground="#A5B4FC")
-        style.configure("Value.TLabel", font=("Segoe UI", 10), foreground="#E2E8F0")
 
     def _set_app_icon(self):
         icon_path = self.base_dir / "assets" / "Acc_logo.ico"
@@ -86,7 +83,8 @@ class RFIDApp:
                 pass
 
     def _on_connection_change(self, connected: bool):
-        pass
+        if not connected:
+            self.comm_panel_comp.show_disconnected()
 
     def _bind_events(self):
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -111,7 +109,7 @@ class RFIDApp:
         log_c = self.log_panel_comp.log_console
         if self.reader.is_connected():
             self.reader.write_bytes(hb)
-            write_log(f"UART TX (hex): {hb.hex().upper()}", log_c)
+            write_log(f"UART TX (hex): {hb.hex(' ').upper()}", log_c)
         else:
             write_log("UART TX ignored: reader not connected", log_c)
 
@@ -129,53 +127,127 @@ class RFIDApp:
 
     def _parse_uart_response(self, frame: bytes):
         """Universal parser for UART response frames starting with 24EF and ending with 23."""
+        log_console = self.log_panel_comp.log_console
+        medium = self.comm_panel_comp.medium_var.get()
+        frame_hex = frame.hex().upper()
+
         try:
-            if len(frame) < 6:
+            if len(frame) < 5:
+                self.comm_panel_comp.show_fail(description="Frame too short")
                 return
 
-            tag_byte = frame[3]  # Payload Parameter Tag ID
+            tag_byte = frame[3]  # Response Tag / Command ID Byte
+
+            # Negative response check (0x7F when length == 3 or error format)
+            if tag_byte == 0x7F and len(frame) <= 8 and len(frame[4:-3]) <= 2:
+                failed_cmd = frame[4] if len(frame) > 4 else 0
+                error_code = frame[5] if len(frame) > 5 else 0x01
+                self.comm_panel_comp.show_fail(error_code=error_code)
+                write_log(f"UART RX Negative Response for Cmd 0x{failed_cmd:02X} (Error 0x{error_code:02X})", log_console)
+                log_console.append_json(
+                    name=f"Cmd 0x{failed_cmd:02X}",
+                    operation="Negative Response",
+                    command_sent="",
+                    response_received=frame_hex,
+                    conversion="error",
+                    medium=medium,
+                )
+                return
+
+            # Positive Response Payload extraction (frame[4:-3] if CRC present, else frame[4:-1])
             data_bytes = frame[4:-3] if len(frame) >= 7 else frame[4:-1]
+            payload_hex_spaced = data_bytes.hex(" ").upper()
+
+            var_name = ""
+            field_label = ""
+            conv_type = ""
+            decoded_val = ""
+            param_id = None
 
             if tag_byte == 0x40:  # Tag EPC (0x00) -> Hex As-Is
-                hex_val = data_bytes.hex().upper()
-                self.tag_form_comp.set_field_value("tag_id", hex_val)
-                write_log(f"Tag EPC Received: {hex_val}", self.log_panel_comp.log_console)
+                param_id = 0x00
+                var_name = "tag_id"
+                field_label = "Tag ID Storage"
+                conv_type = "hex as it is"
+                decoded_val = data_bytes.hex().upper()
 
             elif tag_byte == 0x41:  # Serial Reader Number (0x01) -> Alphanumeric
-                ascii_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
-                self.tag_form_comp.set_field_value("serial", ascii_val)
-                write_log(f"Serial Number Received: {ascii_val}", self.log_panel_comp.log_console)
+                param_id = 0x01
+                var_name = "serial"
+                field_label = "Serial Number Storage"
+                conv_type = "alphanumeric"
+                decoded_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
 
             elif tag_byte == 0x42:  # Trailer VIN (0x02) -> Alphanumeric
-                ascii_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
-                self.tag_form_comp.set_field_value("vin", ascii_val)
-                write_log(f"VIN Received: {ascii_val}", self.log_panel_comp.log_console)
+                param_id = 0x02
+                var_name = "vin"
+                field_label = "VIN Storage"
+                conv_type = "alphanumeric"
+                decoded_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
 
             elif tag_byte == 0x43:  # Axle Count (0x03) -> Numerical
+                param_id = 0x03
+                var_name = "axle"
+                field_label = "Axle Count Storage"
+                conv_type = "numerical"
                 num_val = int.from_bytes(data_bytes, byteorder="big") if data_bytes else 0
-                self.tag_form_comp.set_field_value("axle", str(num_val))
-                write_log(f"Axle Count Received: {num_val}", self.log_panel_comp.log_console)
+                decoded_val = str(num_val)
 
             elif tag_byte == 0x44:  # Registration Number (0x04) -> Alphanumeric
-                ascii_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
-                self.tag_form_comp.set_field_value("registration", ascii_val)
-                write_log(f"Registration Number Received: {ascii_val}", self.log_panel_comp.log_console)
+                param_id = 0x04
+                var_name = "registration"
+                field_label = "Registration No."
+                conv_type = "alphanumeric"
+                decoded_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
 
             elif tag_byte == 0x45:  # Gross Weight (0x05) -> Decimal
+                param_id = 0x05
+                var_name = "gvw"
+                field_label = "GVW/GCW Storage"
+                conv_type = "decimal"
                 weight_val = int.from_bytes(data_bytes, byteorder="big") if data_bytes else 0
-                self.tag_form_comp.set_field_value("gvw", str(weight_val))
-                write_log(f"Gross Weight Received: {weight_val}", self.log_panel_comp.log_console)
+                decoded_val = str(weight_val)
 
-            elif tag_byte in (0x7F, 0x46):  # Meta Data / TA Cert (0x06) -> Hex As-Is
-                hex_val = data_bytes.hex().upper()
-                self.tag_form_comp.set_field_value("cert", hex_val)
-                write_log(f"Meta Data Received: {hex_val}", self.log_panel_comp.log_console)
+            elif tag_byte in (0x46, 0x7F):  # Meta Data / TA Cert (0x06) -> Hex As-Is
+                param_id = 0x06
+                var_name = "cert"
+                field_label = "TA Certification Storage"
+                conv_type = "hex as it is"
+                decoded_val = data_bytes.hex().upper()
+
+            if var_name:
+                # Retrieve matching command_sent hex from pending_requests
+                pending_info = self.tag_form_comp.pending_requests.pop(param_id, {})
+                cmd_sent = pending_info.get("Command Sent", "")
+                op_type = pending_info.get("Operation", "Read")
+
+                # 1. Update UI Entry Box immediately
+                self.tag_form_comp.set_field_value(var_name, decoded_val)
+
+                # 2. Display PASS Card with positive response payload hex
+                self.comm_panel_comp.show_pass(payload_hex_spaced)
+
+                # 3. Log clean text line in console window
+                write_log(f"UART RX ({field_label}): {decoded_val} [Payload: {payload_hex_spaced}]", log_console)
+
+                # 4. Save SINGLE completed JSON entry with BOTH Command Sent and Response Received
+                log_console.append_json(
+                    name=field_label,
+                    operation=op_type,
+                    command_sent=cmd_sent,
+                    response_received=frame_hex,
+                    conversion=conv_type,
+                    medium=medium,
+                )
+            else:
+                self.comm_panel_comp.show_pass(payload_hex_spaced)
 
         except Exception as e:
-            write_log(f"Error parsing response frame: {e}", self.log_panel_comp.log_console)
+            self.comm_panel_comp.show_fail(description=str(e))
+            write_log(f"Error parsing response frame: {e}", log_console)
 
     def update_gui(self):
-        """Optimized GUI event loop that processes UART byte batches without locking the main thread."""
+        """Optimized GUI event loop processing both raw binary and ASCII hex UART packet batches."""
         batch = self.reader.get_raw_batch(max_items=30)
         for raw in batch:
             self.rx_buffer.extend(raw)
@@ -184,37 +256,67 @@ class RFIDApp:
         if len(self.rx_buffer) > 8192:
             del self.rx_buffer[:-2048]
 
-        # Parse framed UART packets ($ ... #)
+        # Parse framed UART packets ($ ... # or 24 ... 23 ASCII)
         while True:
+            # 1. Check for raw binary frame start (0x24 = '$')
             try:
-                start = self.rx_buffer.index(0x24)  # '$'
+                start_bin = self.rx_buffer.index(0x24)
             except ValueError:
+                start_bin = -1
+
+            # 2. Check for ASCII text frame start ('2' '4' = b"24")
+            try:
+                start_asc = self.rx_buffer.find(b"24EF")
+            except ValueError:
+                start_asc = -1
+
+            if start_bin == -1 and start_asc == -1:
                 self.rx_buffer.clear()
                 break
 
-            # Discard preceding noise before frame start
-            if start > 0:
-                del self.rx_buffer[:start]
+            # Handle Binary Frame
+            if start_bin != -1 and (start_asc == -1 or start_bin <= start_asc):
+                if start_bin > 0:
+                    del self.rx_buffer[:start_bin]
 
-            try:
-                end = self.rx_buffer.index(0x23, 1)  # '#'
-            except ValueError:
-                if len(self.rx_buffer) > 512:
-                    del self.rx_buffer[0]
-                break
+                try:
+                    end_bin = self.rx_buffer.index(0x23, 1)  # '#'
+                except ValueError:
+                    if len(self.rx_buffer) > 512:
+                        del self.rx_buffer[0]
+                    break
 
-            frame = bytes(self.rx_buffer[: end + 1])
-            del self.rx_buffer[: end + 1]
+                frame = bytes(self.rx_buffer[: end_bin + 1])
+                del self.rx_buffer[: end_bin + 1]
 
-            frame_hex = frame.hex().upper()
-            write_log(
-                f"UART RX (hex): {frame_hex}",
-                self.log_panel_comp.log_console,
-            )
+                if frame.startswith(b"\x24\xEF"):
+                    self._parse_uart_response(frame)
 
-            # Check if frame is a valid response packet (starts with 24EF)
-            if frame_hex.startswith("24EF"):
-                self._parse_uart_response(frame)
+            # Handle ASCII Frame
+            elif start_asc != -1:
+                if start_asc > 0:
+                    del self.rx_buffer[:start_asc]
+
+                try:
+                    end_asc = self.rx_buffer.find(b"23", 2)
+                except ValueError:
+                    if len(self.rx_buffer) > 512:
+                        del self.rx_buffer[0]
+                    break
+
+                if end_asc == -1:
+                    break
+
+                ascii_bytes = bytes(self.rx_buffer[: end_asc + 2])
+                del self.rx_buffer[: end_asc + 2]
+
+                try:
+                    ascii_str = ascii_bytes.decode("ascii", errors="ignore").replace(" ", "").strip()
+                    raw_binary_frame = bytes.fromhex(ascii_str)
+                    if raw_binary_frame.startswith(b"\x24\xEF"):
+                        self._parse_uart_response(raw_binary_frame)
+                except Exception:
+                    pass
 
         self.root.after(50, self.update_gui)
 
