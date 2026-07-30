@@ -1,11 +1,22 @@
-import serial
-import threading
 import queue
+import threading
 import time
+import serial
+from serial.tools import list_ports
 
 
 class SerialReader:
-    def __init__(self, port="COM3", baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=1):
+    """Fully asynchronous, non-blocking Threaded UART Serial Port Reader/Writer."""
+
+    def __init__(
+        self,
+        port: str = "COM3",
+        baudrate: int = 115200,
+        bytesize: int = 8,
+        parity: str = "N",
+        stopbits: int = 1,
+        timeout: float = 0.1,
+    ):
         self.port = port
         self.baudrate = baudrate
         self.bytesize = bytesize
@@ -13,142 +24,199 @@ class SerialReader:
         self.stopbits = stopbits
         self.timeout = timeout
         self.ser = None
-        self.queue = queue.Queue()
-        self.raw_queue = queue.Queue()
+        self.raw_queue = queue.Queue(maxsize=2000)
+        self.tx_queue = queue.Queue(maxsize=1000)
         self.running = False
         self.connected = False
+        self.on_disconnect_callback = None
 
-    def connect(self, port=None, baudrate=None, bytesize=None, parity=None, stopbits=None, timeout=None):
+    def set_disconnect_callback(self, callback):
+        """Set callback to notify UI when connection is broken asynchronously."""
+        self.on_disconnect_callback = callback
+
+    def connect(
+        self,
+        port: str = None,
+        baudrate: int = None,
+        bytesize: int = None,
+        parity: str = None,
+        stopbits: int = None,
+        timeout: float = None,
+    ) -> bool:
         if self.connected:
             return True
 
-        if port is None:
-            port = self.port
-        if baudrate is None:
-            baudrate = self.baudrate
-        if bytesize is None:
-            bytesize = self.bytesize
-        if parity is None:
-            parity = self.parity
-        if stopbits is None:
-            stopbits = self.stopbits
-        if timeout is None:
-            timeout = self.timeout
-        if self.connected:
-            return True
+        target_port = port if port is not None else self.port
+        target_baud = baudrate if baudrate is not None else self.baudrate
+        target_bytesize = bytesize if bytesize is not None else self.bytesize
+        target_parity = parity if parity is not None else self.parity
+        target_stopbits = stopbits if stopbits is not None else self.stopbits
+        target_timeout = timeout if timeout is not None else self.timeout
 
-        if port is None:
-            port = self.port
-        if baudrate is None:
-            baudrate = self.baudrate
+        # Check port existence before attempting blocking open
+        try:
+            available_ports = [p.device for p in list_ports.comports()]
+            if available_ports and target_port not in available_ports:
+                return False
+        except Exception:
+            pass
 
         try:
             self.ser = serial.Serial(
-                port=port,
-                baudrate=baudrate,
-                bytesize=bytesize,
-                parity=parity,
-                stopbits=stopbits,
-                timeout=timeout,
+                port=target_port,
+                baudrate=target_baud,
+                bytesize=target_bytesize,
+                parity=target_parity,
+                stopbits=target_stopbits,
+                timeout=target_timeout,
+                write_timeout=0.2,  # Prevent blocking on write
             )
+            self.port = target_port
+            self.baudrate = target_baud
             self.running = True
             self.connected = True
-            threading.Thread(target=self.read_loop, daemon=True).start()
-            self.queue.put(f"Connected to {port}")
-            return True
 
-        except Exception as e:
-            self.queue.put(f"Connection Failed : {e}")
+            # Clear queues on new connection
+            while not self.raw_queue.empty():
+                try:
+                    self.raw_queue.get_nowait()
+                except Exception:
+                    break
+            while not self.tx_queue.empty():
+                try:
+                    self.tx_queue.get_nowait()
+                except Exception:
+                    break
+
+            threading.Thread(target=self._read_loop, daemon=True).start()
+            threading.Thread(target=self._write_loop, daemon=True).start()
+            return True
+        except Exception:
+            self._handle_disconnect()
             return False
 
-    def read_loop(self):
-        while self.running:
+    def _read_loop(self):
+        while self.running and self.ser and self.ser.is_open:
             try:
                 if self.ser.in_waiting:
                     raw = self.ser.read(self.ser.in_waiting)
-
                     if raw:
-                        # Store ONLY raw bytes
-                        self.raw_queue.put(raw)
+                        try:
+                            self.raw_queue.put_nowait(raw)
+                        except queue.Full:
+                            try:
+                                self.raw_queue.get_nowait()
+                                self.raw_queue.put_nowait(raw)
+                            except Exception:
+                                pass
+                else:
+                    time.sleep(0.01)
+            except Exception:
+                self._handle_disconnect()
+                break
 
-            except Exception as e:
-                self.queue.put(f"UART Error : {e}")
-                self.disconnect()
+    def _write_loop(self):
+        """Background thread handling non-blocking serial transmissions."""
+        while self.running and self.ser and self.ser.is_open:
+            try:
+                data = self.tx_queue.get(timeout=0.1)
+                if data and self.ser and self.ser.is_open:
+                    self.ser.write(data)
+            except queue.Empty:
+                continue
+            except Exception:
+                self._handle_disconnect()
+                break
 
-    def disconnect(self):
+    def _handle_disconnect(self):
+        was_connected = self.connected
         self.running = False
+        self.connected = False
         if self.ser:
             try:
+                if hasattr(self.ser, "cancel_read"):
+                    self.ser.cancel_read()
+                if hasattr(self.ser, "cancel_write"):
+                    self.ser.cancel_write()
                 self.ser.close()
             except Exception:
                 pass
-        self.connected = False
-        self.ser = None
+            self.ser = None
 
-    def get_data(self):
-        if not self.queue.empty():
-            return self.queue.get()
-        return None
+        if was_connected and callable(self.on_disconnect_callback):
+            try:
+                self.on_disconnect_callback()
+            except Exception:
+                pass
 
-    def get_raw_data(self):
+    def disconnect(self):
+        self._handle_disconnect()
+
+    def stop(self):
+        """Alias for disconnect."""
+        self.disconnect()
+
+    def is_connected(self) -> bool:
+        return self.connected and self.ser is not None and self.ser.is_open
+
+    def get_raw_data(self) -> bytes | None:
         if not self.raw_queue.empty():
-            return self.raw_queue.get()
+            try:
+                return self.raw_queue.get_nowait()
+            except queue.Empty:
+                return None
         return None
 
-    def probe_port(self, port=None, baudrate=None, probe_time=0.8):
-        if port is None:
-            port = self.port
-        if baudrate is None:
-            baudrate = self.baudrate
+    def get_raw_batch(self, max_items: int = 50) -> list[bytes]:
+        batch = []
+        for _ in range(max_items):
+            if self.raw_queue.empty():
+                break
+            try:
+                batch.append(self.raw_queue.get_nowait())
+            except queue.Empty:
+                break
+        return batch
 
+    def write_line(self, data: str) -> bool:
+        """Non-blocking queue write. Returns True if queued successfully."""
+        if not self.is_connected():
+            return False
+        try:
+            self.tx_queue.put_nowait(data.encode("utf-8"))
+            return True
+        except queue.Full:
+            return False
+
+    def write_bytes(self, data: bytes) -> bool:
+        """Non-blocking queue byte write. Returns True if queued successfully."""
+        if not self.is_connected():
+            return False
+        try:
+            self.tx_queue.put_nowait(data)
+            return True
+        except queue.Full:
+            return False
+
+    def probe_port(self, port: str = None, baudrate: int = None, probe_time: float = 0.5) -> bool:
+        target_port = port or self.port
+        target_baud = baudrate or self.baudrate
         try:
             with serial.Serial(
-                port=port,
-                baudrate=baudrate,
+                port=target_port,
+                baudrate=target_baud,
                 bytesize=self.bytesize,
                 parity=self.parity,
                 stopbits=self.stopbits,
-                timeout=0.2,
+                timeout=0.1,
+                write_timeout=0.1,
             ) as ser:
                 start = time.time()
                 while time.time() - start < probe_time:
                     if ser.in_waiting:
                         ser.readline()
                         return True
+                    time.sleep(0.05)
                 return False
         except Exception:
             return False
-
-    def write_line(self, data):
-        if not self.connected or self.ser is None:
-            return False
-        try:
-            self.ser.write(data.encode("utf-8"))
-            return True
-        except Exception as e:
-            self.queue.put(f"UART Write Failed : {e}")
-            return False
-
-    def write_bytes(self, data: bytes) -> bool:
-        """Write raw bytes to the serial port."""
-        if not self.connected or self.ser is None:
-            return False
-        try:
-            self.ser.write(data)
-            return True
-        except Exception as e:
-            self.queue.put(f"UART Write Failed : {e}")
-            return False
-
-    def is_connected(self):
-        return self.connected
-
-    def stop(self):
-        self.running = False
-        if self.ser:
-            try:
-                self.ser.close()
-            except Exception:
-                pass
-        self.connected = False
-        self.ser = None

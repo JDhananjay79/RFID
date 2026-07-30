@@ -2,3 +2,8 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.log
+verifier.py
+Ui.py/
+rfid/
+security/

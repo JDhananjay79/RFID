@@ -1,4 +1,5 @@
-from rfid.Ui import root
+from ui.app import RFIDApp
 
 if __name__ == "__main__":
-    root.mainloop()
+    app = RFIDApp()
+    app.run()
