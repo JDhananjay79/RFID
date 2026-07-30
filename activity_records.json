@@ -3,163 +3,136 @@
     "Name": "Tag ID Storage",
     "Operation": "Read",
     "Command Sent": "24110100E1F023",
-    "Response Received": "24EF0E40E2004706BA706820C346010DB5F73A23",
+    "Response Received": "24EF0E40E2004706BA706820C346010DBF567023",
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:55:27.109"
-  },
-  {
-    "Name": "Serial Number Storage",
-    "Operation": "Read",
-    "Command Sent": "24110101F1D123",
-    "Response Received": "24EF114131320000000000000000000000000000FC7723",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:55:27.411"
-  },
-  {
-    "Name": "VIN Storage",
-    "Operation": "Read",
-    "Command Sent": "24110102C1B223",
-    "Response Received": "24EF1342676664677364666700000000000000000000734C23",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:55:27.538"
-  },
-  {
-    "Name": "Axle Count Storage",
-    "Operation": "Read",
-    "Command Sent": "24110103D19323",
-    "Response Received": "24EF03430003B80223",
-    "Conversion": "numerical",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:55:27.784"
-  },
-  {
-    "Name": "Registration No.",
-    "Operation": "Read",
-    "Command Sent": "24110104A17423",
-    "Response Received": "24EF0D446461736461736400000000003A1623",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:55:28.014"
-  },
-  {
-    "Name": "GVW/GCW Storage",
-    "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF054500000CA1C39523",
-    "Conversion": "decimal",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:55:28.221"
-  },
-  {
-    "Name": "TA Certification Storage",
-    "Operation": "Read",
-    "Command Sent": "24110106813623",
-    "Response Received": "24EF037F0607E2E423",
-    "Conversion": "hex as it is",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:55:28.540"
-  },
-  {
-    "Name": "TA Certification Storage",
-    "Operation": "Read",
-    "Command Sent": "",
-    "Response Received": "24EF037FFF021B1823",
-    "Conversion": "hex as it is",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:57:50.221"
-  },
-  {
-    "Name": "TA Certification Storage",
-    "Operation": "Read",
-    "Command Sent": "",
-    "Response Received": "24EF037F380294DB23",
-    "Conversion": "hex as it is",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:57:50.406"
+    "Time Stamp": "2026-07-30 18:10:20.523"
   },
   {
     "Name": "Tag ID Storage",
     "Operation": "Read",
     "Command Sent": "24110100E1F023",
-    "Response Received": "24EF0E40E2004706BA706820C346010DBB16F423",
+    "Response Received": "24EF0E400000000000000000000000000082D523",
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:57:58.575"
-  },
-  {
-    "Name": "Serial Number Storage",
-    "Operation": "Read",
-    "Command Sent": "24110101F1D123",
-    "Response Received": "24EF114131320000000000000000000000000000FC7723",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:57:58.879"
-  },
-  {
-    "Name": "VIN Storage",
-    "Operation": "Read",
-    "Command Sent": "24110102C1B223",
-    "Response Received": "24EF1342676664677364666700000000000000000000734C23",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:57:59.022"
-  },
-  {
-    "Name": "Axle Count Storage",
-    "Operation": "Read",
-    "Command Sent": "24110103D19323",
-    "Response Received": "24EF03430005D8C423",
-    "Conversion": "numerical",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:57:59.278"
-  },
-  {
-    "Name": "Registration No.",
-    "Operation": "Read",
-    "Command Sent": "24110104A17423",
-    "Response Received": "24EF0D446461736461736400000000003A1623",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:57:59.469"
-  },
-  {
-    "Name": "GVW/GCW Storage",
-    "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF054500000CA1C39523",
-    "Conversion": "decimal",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:57:59.678"
+    "Time Stamp": "2026-07-30 18:10:50.525"
   },
   {
     "Name": "TA Certification Storage",
     "Operation": "Read",
     "Command Sent": "24110106813623",
-    "Response Received": "24EF037F0607E2E423",
+    "Response Received": "24EF037F0004782123",
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:57:59.868"
+    "Time Stamp": "2026-07-30 18:11:20.583"
   },
   {
     "Name": "Tag ID Storage",
     "Operation": "Read",
     "Command Sent": "24110100E1F023",
-    "Response Received": "24EF0E40E2004706BA706820C346010DBE465123",
+    "Response Received": "24EF0E40E2004706BA706820C346010DC0D90823",
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:58:21.229"
+    "Time Stamp": "2026-07-30 18:29:05.362"
+  },
+  {
+    "Name": "Tag ID Storage",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "TIMEOUT",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:29:42.046"
+  },
+  {
+    "Name": "Tag ID Storage",
+    "Operation": "Read",
+    "Command Sent": "",
+    "Response Received": "24EF0E400000000000000000000000000082D523",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:29:50.353"
+  },
+  {
+    "Name": "Tag ID Storage",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "TIMEOUT",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:30:18.463"
+  },
+  {
+    "Name": "Tag ID Storage",
+    "Operation": "Read",
+    "Command Sent": "",
+    "Response Received": "24EF0E400000000000000000000000000082D523",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:30:20.296"
   },
   {
     "Name": "Serial Number Storage",
     "Operation": "Read",
     "Command Sent": "24110101F1D123",
-    "Response Received": "24EF114131320000000000000000000000000000FC7723",
+    "Response Received": "TIMEOUT",
     "Conversion": "alphanumeric",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:58:21.647"
+    "Time Stamp": "2026-07-30 18:31:32.969"
+  },
+  {
+    "Name": "TA Certification Storage",
+    "Operation": "Read",
+    "Command Sent": "",
+    "Response Received": "24EF037F01077B7323",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:31:36.308"
+  },
+  {
+    "Name": "TA Certification Storage",
+    "Operation": "Read",
+    "Command Sent": "24110106813623",
+    "Response Received": "TIMEOUT",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:31:47.271"
+  },
+  {
+    "Name": "TA Certification Storage",
+    "Operation": "Read",
+    "Command Sent": "",
+    "Response Received": "24EF037F0607E2E423",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:31:51.363"
+  },
+  {
+    "Name": "GVW/GCW Storage",
+    "Operation": "Read",
+    "Command Sent": "24110105B15523",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:32:02.583"
+  },
+  {
+    "Name": "TA Certification Storage",
+    "Operation": "Read",
+    "Command Sent": "",
+    "Response Received": "24EF037F0507B7B723",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:32:07.439"
+  },
+  {
+    "Name": "VIN Storage",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:32:14.055"
   },
   {
     "Name": "TA Certification Storage",
@@ -168,231 +141,438 @@
     "Response Received": "24EF037F02072E2023",
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:58:21.657"
+    "Time Stamp": "2026-07-30 18:32:22.217"
+  },
+  {
+    "Name": "Registration No.",
+    "Operation": "Read",
+    "Command Sent": "24110104A17423",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:32:30.202"
+  },
+  {
+    "Name": "TA Certification Storage",
+    "Operation": "Read",
+    "Command Sent": "",
+    "Response Received": "24EF037F0407848623",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:32:38.261"
   },
   {
     "Name": "Axle Count Storage",
     "Operation": "Read",
     "Command Sent": "24110103D19323",
-    "Response Received": "24EF0343000A292B23",
+    "Response Received": "TIMEOUT",
     "Conversion": "numerical",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:59:09.065"
-  },
-  {
-    "Name": "VIN Storage",
-    "Operation": "Read",
-    "Command Sent": "24110102C1B223",
-    "Response Received": "24EF1342676664677364666700000000000000000000734C23",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:59:17.797"
-  },
-  {
-    "Name": "VIN Storage",
-    "Operation": "Read",
-    "Command Sent": "24110102C1B223",
-    "Response Received": "24EF1342313233343536373839300000000000000000F60D23",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 16:59:39.979"
-  },
-  {
-    "Name": "VIN Storage",
-    "Operation": "Read",
-    "Command Sent": "24110102C1B223",
-    "Response Received": "24EF13424D4154383739373938383937393739373900A48223",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:00:16.595"
-  },
-  {
-    "Name": "Registration No.",
-    "Operation": "Read",
-    "Command Sent": "24110104A17423",
-    "Response Received": "24EF0D446461736461736400000000003A1623",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:00:22.020"
-  },
-  {
-    "Name": "Registration No.",
-    "Operation": "Read",
-    "Command Sent": "24110104A17423",
-    "Response Received": "24EF0D44535552414A303030303030304B2D23",
-    "Conversion": "alphanumeric",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:00:37.794"
-  },
-  {
-    "Name": "GVW/GCW Storage",
-    "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF054500000CA1C39523",
-    "Conversion": "decimal",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:00:44.371"
-  },
-  {
-    "Name": "GVW/GCW Storage",
-    "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF0545000004BC89A023",
-    "Conversion": "decimal",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:00:54.516"
+    "Time Stamp": "2026-07-30 18:32:45.017"
   },
   {
     "Name": "TA Certification Storage",
     "Operation": "Read",
-    "Command Sent": "24110106813623",
-    "Response Received": "24EF037F0607E2E423",
+    "Command Sent": "",
+    "Response Received": "24EF037F03071D1123",
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:00:59.807"
+    "Time Stamp": "2026-07-30 18:32:54.398"
   },
   {
-    "Name": "TA Certification Storage",
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "TIMEOUT",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:35:33.256"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:37:55.608"
+  },
+  {
+    "Name": "Serial Reader Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 12 29 01 67 6B 67 6C 6B 6A 67 6C 6B 67 6C 6B 66 6C 00 00 54 62 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:38:38.458"
+  },
+  {
+    "Name": "TA Certification",
+    "Operation": "Read",
+    "Command Sent": "24110106813623",
+    "Response Received": "TIMEOUT",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:39:03.790"
+  },
+  {
+    "Name": "TA Certification",
     "Operation": "Write",
     "Command Sent": "24 11 04 29 06 00 00 F2 59 23",
     "Response Received": "24EF037F2906E41D23",
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:01:12.587"
+    "Time Stamp": "2026-07-30 18:39:23.875"
   },
   {
-    "Name": "Tag ID Storage",
+    "Name": "GVW/GCW",
     "Operation": "Read",
-    "Command Sent": "24110100E1F023",
-    "Response Received": "24EF0E40E2004706BA706820C346010DBB16F423",
-    "Conversion": "hex as it is",
+    "Command Sent": "24110105B15523",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:01:26.125"
+    "Time Stamp": "2026-07-30 18:39:39.894"
   },
   {
-    "Name": "Serial Number Storage",
-    "Operation": "Read",
-    "Command Sent": "24110101F1D123",
-    "Response Received": "24EF114131320000000000000000000000000000FC7723",
-    "Conversion": "alphanumeric",
+    "Name": "Trailer Gross Weight",
+    "Operation": "Write",
+    "Command Sent": "24 11 06 29 05 03 E6 EC 79 63 81 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:01:26.462"
+    "Time Stamp": "2026-07-30 18:40:01.747"
   },
   {
-    "Name": "VIN Storage",
+    "Name": "VIN",
     "Operation": "Read",
     "Command Sent": "24110102C1B223",
-    "Response Received": "24EF13424D4154383739373938383937393739373900A48223",
+    "Response Received": "TIMEOUT",
     "Conversion": "alphanumeric",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:01:26.702"
-  },
-  {
-    "Name": "Axle Count Storage",
-    "Operation": "Read",
-    "Command Sent": "24110103D19323",
-    "Response Received": "24EF0343000A292B23",
-    "Conversion": "numerical",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:01:26.844"
+    "Time Stamp": "2026-07-30 18:40:21.098"
   },
   {
     "Name": "Registration No.",
     "Operation": "Read",
     "Command Sent": "24110104A17423",
-    "Response Received": "24EF0D44535552414A303030303030304B2D23",
+    "Response Received": "TIMEOUT",
     "Conversion": "alphanumeric",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:01:27.053"
+    "Time Stamp": "2026-07-30 18:40:31.940"
   },
   {
-    "Name": "GVW/GCW Storage",
+    "Name": "Axle Count",
     "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF0545000004BC89A023",
-    "Conversion": "decimal",
+    "Command Sent": "24110103D19323",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:01:27.358"
+    "Time Stamp": "2026-07-30 18:40:41.109"
   },
   {
-    "Name": "TA Certification Storage",
-    "Operation": "Read",
-    "Command Sent": "24110106813623",
-    "Response Received": "24EF037F0607E2E423",
-    "Conversion": "hex as it is",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:01:27.376"
-  },
-  {
-    "Name": "GVW/GCW Storage",
-    "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF054500000019A02B23",
-    "Conversion": "decimal",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:09:05.401"
-  },
-  {
-    "Name": "GVW/GCW Storage",
-    "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF054500000032352223",
-    "Conversion": "decimal",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:09:19.645"
-  },
-  {
-    "Name": "GVW/GCW Storage",
-    "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF05450001D97C04A723",
-    "Conversion": "decimal",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:10:47.493"
-  },
-  {
-    "Name": "GVW/GCW Storage",
-    "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF0545000200F1B26D23",
-    "Conversion": "decimal",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:11:08.119"
-  },
-  {
-    "Name": "GVW/GCW Storage",
-    "Operation": "Read",
-    "Command Sent": "24110105B15523",
-    "Response Received": "24EF0545019D3D0FEDC923",
-    "Conversion": "decimal",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:16:25.631"
-  },
-  {
-    "Name": "TA Certification Storage",
-    "Operation": "Read",
-    "Command Sent": "24110106813623",
-    "Response Received": "24EF037F0607E2E423",
-    "Conversion": "hex as it is",
-    "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:17:14.273"
-  },
-  {
-    "Name": "TA Certification Storage",
+    "Name": "Axle Count",
     "Operation": "Write",
-    "Command Sent": "24 11 04 29 06 25 00 0B 4A 23",
+    "Command Sent": "24 11 04 29 03 15 58 3E D2 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:41:09.419"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "TIMEOUT",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:41:53.203"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "TIMEOUT",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:42:11.069"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "24EF0E40E2004706BA706820C346010DD6ABFF23",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:43:11.582"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF1141343300000000000000000000000000007A7D23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:43:19.053"
+  },
+  {
+    "Name": "Serial Reader Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 12 29 01 30 30 30 31 00 00 00 00 00 00 00 00 00 00 00 00 32 CF 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:43:49.846"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF1141303030310000000000000000000000003C0D23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:43:51.853"
+  },
+  {
+    "Name": "TA Certification",
+    "Operation": "Write",
+    "Command Sent": "24 11 04 29 06 00 00 F2 59 23",
     "Response Received": "24EF037F2906E41D23",
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:19:54.247"
+    "Time Stamp": "2026-07-30 18:43:59.955"
   },
   {
-    "Name": "TA Certification Storage",
+    "Name": "TA Certification",
     "Operation": "Read",
     "Command Sent": "24110106813623",
     "Response Received": "24EF037F0607E2E423",
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
-    "Time Stamp": "2026-07-30 17:20:32.664"
+    "Time Stamp": "2026-07-30 18:44:03.368"
+  },
+  {
+    "Name": "TA Certification",
+    "Operation": "Write",
+    "Command Sent": "24 11 04 29 06 06 07 28 18 23",
+    "Response Received": "24EF037F2906E41D23",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:44:07.184"
+  },
+  {
+    "Name": "TA Certification",
+    "Operation": "Write",
+    "Command Sent": "24 11 04 29 06 29 06 2E E1 23",
+    "Response Received": "24EF037F2906E41D23",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:44:09.442"
+  },
+  {
+    "Name": "TA Certification",
+    "Operation": "Write",
+    "Command Sent": "24 11 04 29 06 29 06 2E E1 23",
+    "Response Received": "24EF037F2906E41D23",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:44:10.257"
+  },
+  {
+    "Name": "TA Certification",
+    "Operation": "Read",
+    "Command Sent": "24110106813623",
+    "Response Received": "24EF037F0607E2E423",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:44:11.204"
+  },
+  {
+    "Name": "GVW/GCW",
+    "Operation": "Read",
+    "Command Sent": "24110105B15523",
+    "Response Received": "24EF0545000015B3480D23",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:44:17.671"
+  },
+  {
+    "Name": "Trailer Gross Weight",
+    "Operation": "Write",
+    "Command Sent": "24 11 06 29 05 00 00 61 A8 5C 54 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:44:33.834"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13424D41543030303030303030303030303031003CF523",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:44:50.583"
+  },
+  {
+    "Name": "Registration Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 0E 29 04 4D 48 31 34 46 46 39 32 30 34 00 00 35 7E 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:47:05.142"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 04 29 03 00 04 59 2D 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:47:10.684"
+  },
+  {
+    "Name": "Registration Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 0E 29 04 4D 48 31 34 46 46 39 32 30 34 00 00 35 7E 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:47:28.975"
+  },
+  {
+    "Name": "Registration No.",
+    "Operation": "Read",
+    "Command Sent": "24110104A17423",
+    "Response Received": "24EF0D444D4831344646393230340000E30D23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:47:42.831"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430004C8E523",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:47:46.688"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13424D41543030303030303030303030303031003CF523",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:47:48.479"
+  },
+  {
+    "Name": "GVW/GCW",
+    "Operation": "Read",
+    "Command Sent": "24110105B15523",
+    "Response Received": "24EF0545000061A82FCA23",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:47:53.087"
+  },
+  {
+    "Name": "TA Certification",
+    "Operation": "Read",
+    "Command Sent": "24110106813623",
+    "Response Received": "24EF037F0607E2E423",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:47:55.372"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF1141303030310000000000000000000000003C0D23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:07.158"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "TIMEOUT",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:15.793"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "24EF0E40E2004706BA706820C346010DD7BBDE23",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:19.794"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "24EF0E40E2004706BA706820C346010DD84A3123",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:43.237"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF1141303030310000000000000000000000003C0D23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:44.312"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13424D41543030303030303030303030303031003CF523",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:45.414"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430004C8E523",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:46.314"
+  },
+  {
+    "Name": "Registration No.",
+    "Operation": "Read",
+    "Command Sent": "24110104A17423",
+    "Response Received": "24EF0D444D4831344646393230340000E30D23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:47.355"
+  },
+  {
+    "Name": "GVW/GCW",
+    "Operation": "Read",
+    "Command Sent": "24110105B15523",
+    "Response Received": "24EF0545000061A82FCA23",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:48.381"
+  },
+  {
+    "Name": "TA Certification",
+    "Operation": "Read",
+    "Command Sent": "24110106813623",
+    "Response Received": "24EF037F0607E2E423",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-07-30 18:48:49.409"
   }
 ]

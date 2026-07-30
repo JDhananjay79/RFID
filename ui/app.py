@@ -60,6 +60,7 @@ class RFIDApp:
             self.reader,
             lambda: self.log_panel_comp.log_console,
             reset_reader_status_cb=None,
+            timeout_cb=self._on_command_timeout,
         )
 
         self._bind_events()
@@ -73,6 +74,14 @@ class RFIDApp:
         style.configure("Section.TLabel", font=("Segoe UI", 11, "bold"), foreground="#E2E8F0")
         style.configure("Field.TLabel", font=("Segoe UI", 10), foreground="#E2E8F0")
         style.configure("Caption.TLabel", font=("Segoe UI", 9), foreground="#94a3b8")
+
+        # Rounded styling for Entry boxes, Buttons, and Comboboxes
+        style.configure("TEntry", padding=(8, 6), borderwidth=1, relief="flat")
+        style.configure("TButton", padding=(10, 6), borderwidth=1, relief="flat")
+        style.configure("TCombobox", padding=(6, 5))
+
+    def _on_command_timeout(self, field_label: str):
+        self.comm_panel_comp.show_timeout(field_label)
 
     def _set_app_icon(self):
         icon_path = self.base_dir / "assets" / "Acc_logo.ico"
@@ -142,16 +151,20 @@ class RFIDApp:
             if tag_byte == 0x7F and len(frame) <= 8 and len(frame[4:-3]) <= 2:
                 failed_cmd = frame[4] if len(frame) > 4 else 0
                 error_code = frame[5] if len(frame) > 5 else 0x01
-                self.comm_panel_comp.show_fail(error_code=error_code)
-                write_log(f"UART RX Negative Response for Cmd 0x{failed_cmd:02X} (Error 0x{error_code:02X})", log_console)
-                log_console.append_json(
-                    name=f"Cmd 0x{failed_cmd:02X}",
-                    operation="Negative Response",
-                    command_sent="",
-                    response_received=frame_hex,
-                    conversion="error",
-                    medium=medium,
-                )
+                if failed_cmd in self.tag_form_comp.pending_requests:
+                    self.tag_form_comp.pending_requests.pop(failed_cmd)
+                    self.comm_panel_comp.show_fail(error_code=error_code)
+                    write_log(f"UART RX Negative Response for Cmd 0x{failed_cmd:02X} (Error 0x{error_code:02X})", log_console)
+                    log_console.append_json(
+                        name=f"Cmd 0x{failed_cmd:02X}",
+                        operation="Negative Response",
+                        command_sent="",
+                        response_received=frame_hex,
+                        conversion="error",
+                        medium=medium,
+                    )
+                else:
+                    write_log(f"UART RX Ignored (Late Negative Response after timeout for Cmd 0x{failed_cmd:02X})", log_console)
                 return
 
             # Positive Response Payload extraction (frame[4:-3] if CRC present, else frame[4:-1])
@@ -167,28 +180,30 @@ class RFIDApp:
             if tag_byte == 0x40:  # Tag EPC (0x00) -> Hex As-Is
                 param_id = 0x00
                 var_name = "tag_id"
-                field_label = "Tag ID Storage"
+                field_label = "Tag ID"
                 conv_type = "hex as it is"
                 decoded_val = data_bytes.hex().upper()
+                if len(decoded_val) > 24:
+                    decoded_val = decoded_val[:24]
 
             elif tag_byte == 0x41:  # Serial Reader Number (0x01) -> Alphanumeric
                 param_id = 0x01
                 var_name = "serial"
-                field_label = "Serial Number Storage"
+                field_label = "Serial Number"
                 conv_type = "alphanumeric"
                 decoded_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
 
             elif tag_byte == 0x42:  # Trailer VIN (0x02) -> Alphanumeric
                 param_id = 0x02
                 var_name = "vin"
-                field_label = "VIN Storage"
+                field_label = "VIN"
                 conv_type = "alphanumeric"
                 decoded_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
 
             elif tag_byte == 0x43:  # Axle Count (0x03) -> Numerical
                 param_id = 0x03
                 var_name = "axle"
-                field_label = "Axle Count Storage"
+                field_label = "Axle Count"
                 conv_type = "numerical"
                 num_val = int.from_bytes(data_bytes, byteorder="big") if data_bytes else 0
                 decoded_val = str(num_val)
@@ -203,7 +218,7 @@ class RFIDApp:
             elif tag_byte == 0x45:  # Gross Weight (0x05) -> Decimal
                 param_id = 0x05
                 var_name = "gvw"
-                field_label = "GVW/GCW Storage"
+                field_label = "GVW/GCW"
                 conv_type = "decimal"
                 weight_val = int.from_bytes(data_bytes, byteorder="big") if data_bytes else 0
                 decoded_val = str(weight_val)
@@ -211,36 +226,41 @@ class RFIDApp:
             elif tag_byte in (0x46, 0x7F):  # Meta Data / TA Cert (0x06) -> Hex As-Is
                 param_id = 0x06
                 var_name = "cert"
-                field_label = "TA Certification Storage"
+                field_label = "TA Certification"
                 conv_type = "hex as it is"
                 decoded_val = data_bytes.hex().upper()
 
             if var_name:
-                # Retrieve matching command_sent hex from pending_requests
-                pending_info = self.tag_form_comp.pending_requests.pop(param_id, {})
-                cmd_sent = pending_info.get("Command Sent", "")
-                op_type = pending_info.get("Operation", "Read")
+                if param_id in self.tag_form_comp.pending_requests:
+                    # Retrieve matching command_sent hex from pending_requests
+                    pending_info = self.tag_form_comp.pending_requests.pop(param_id)
+                    cmd_sent = pending_info.get("Command Sent", "")
+                    op_type = pending_info.get("Operation", "Read")
 
-                # 1. Update UI Entry Box immediately
-                self.tag_form_comp.set_field_value(var_name, decoded_val)
+                    # 1. Update UI Entry Box immediately
+                    self.tag_form_comp.set_field_value(var_name, decoded_val)
 
-                # 2. Display PASS Card with positive response payload hex
-                self.comm_panel_comp.show_pass(payload_hex_spaced)
+                    # 2. Display PASS Card with positive response payload hex
+                    self.comm_panel_comp.show_pass(payload_hex_spaced)
 
-                # 3. Log clean text line in console window
-                write_log(f"UART RX ({field_label}): {decoded_val} [Payload: {payload_hex_spaced}]", log_console)
+                    # 3. Log clean text line in console window
+                    write_log(f"UART RX ({field_label}): {decoded_val} [Payload: {payload_hex_spaced}]", log_console)
 
-                # 4. Save SINGLE completed JSON entry with BOTH Command Sent and Response Received
-                log_console.append_json(
-                    name=field_label,
-                    operation=op_type,
-                    command_sent=cmd_sent,
-                    response_received=frame_hex,
-                    conversion=conv_type,
-                    medium=medium,
-                )
-            else:
-                self.comm_panel_comp.show_pass(payload_hex_spaced)
+                    # 4. Save SINGLE completed JSON entry with BOTH Command Sent and Response Received
+                    log_console.append_json(
+                        name=field_label,
+                        operation=op_type,
+                        command_sent=cmd_sent,
+                        response_received=frame_hex,
+                        conversion=conv_type,
+                        medium=medium,
+                    )
+                else:
+                    # Late response arrived after 5-second timeout -> ignore and preserve NO RESPONSE status
+                    write_log(
+                        f"UART RX Ignored (Late response received after timeout for {field_label}): [Payload: {payload_hex_spaced}]",
+                        log_console,
+                    )
 
         except Exception as e:
             self.comm_panel_comp.show_fail(description=str(e))

@@ -3,11 +3,13 @@ from tkinter import messagebox
 import ttkbootstrap as ttkb
 
 from validation import (
+    TAG_ID_PLACEHOLDER,
     SERIAL_PLACEHOLDER,
     VIN_PLACEHOLDER,
     AXLE_PLACEHOLDER,
     GVW_PLACEHOLDER,
     REGISTRATION_PLACEHOLDER,
+    validate_tag_id_entry,
     is_serial_valid,
     validate_serial_entry,
     is_vin_valid,
@@ -21,26 +23,27 @@ from logger import write_log
 from communication.protocol import build_write_transmission_frame
 
 FIELD_ROWS = [
-    ("Tag ID Storage", "tag_id"),
-    ("Serial Number Storage", "serial"),
-    ("TA Certification Storage", "cert"),
-    ("GVW/GCW Storage", "gvw"),
-    ("VIN Storage", "vin"),
+    ("Tag ID", "tag_id"),
+    ("Serial Number", "serial"),
+    ("TA Certification", "cert"),
+    ("GVW/GCW", "gvw"),
+    ("VIN", "vin"),
     ("Registration No.", "registration"),
-    ("Axle Count Storage", "axle"),
+    ("Axle Count", "axle"),
 ]
 
 READ_COMMANDS = {
-    "tag_id": ("24110100E1F023", "hex as it is", "Tag ID Storage", 0x00),
-    "serial": ("24110101F1D123", "alphanumeric", "Serial Number Storage", 0x01),
-    "vin": ("24110102C1B223", "alphanumeric", "VIN Storage", 0x02),
-    "axle": ("24110103D19323", "numerical", "Axle Count Storage", 0x03),
+    "tag_id": ("24110100E1F023", "hex as it is", "Tag ID", 0x00),
+    "serial": ("24110101F1D123", "alphanumeric", "Serial Number", 0x01),
+    "vin": ("24110102C1B223", "alphanumeric", "VIN", 0x02),
+    "axle": ("24110103D19323", "numerical", "Axle Count", 0x03),
     "registration": ("24110104A17423", "alphanumeric", "Registration No.", 0x04),
-    "gvw": ("24110105B15523", "decimal", "GVW/GCW Storage", 0x05),
-    "cert": ("24110106813623", "hex as it is", "TA Certification Storage", 0x06),
+    "gvw": ("24110105B15523", "decimal", "GVW/GCW", 0x05),
+    "cert": ("24110106813623", "hex as it is", "TA Certification", 0x06),
 }
 
 PLACEHOLDERS = {
+    "tag_id": TAG_ID_PLACEHOLDER,
     "serial": SERIAL_PLACEHOLDER,
     "vin": VIN_PLACEHOLDER,
     "axle": AXLE_PLACEHOLDER,
@@ -55,15 +58,17 @@ NORMAL_COLOR = "#F9FAFB"
 class TagFormFrame:
     """Component managing the Tag Data form grid, validation, and individual Read/Write buttons."""
 
-    def __init__(self, parent_frame, root, reader, log_console_getter, reset_reader_status_cb=None):
+    def __init__(self, parent_frame, root, reader, log_console_getter, reset_reader_status_cb=None, timeout_cb=None):
         self.root = root
         self.reader = reader
         self.get_log_console = log_console_getter
         self.reset_reader_status_cb = reset_reader_status_cb
+        self.timeout_cb = timeout_cb
 
         self.field_vars = {}
         self.entry_widgets = {}
         self.pending_requests = {}  # Maps param_id -> dict of command metadata
+        self.request_counter = 0
 
         self.form_container = tk.LabelFrame(
             parent_frame,
@@ -99,7 +104,14 @@ class TagFormFrame:
                 "state": "normal",
             }
 
-            if var_name == "serial":
+            if var_name == "tag_id":
+                entry_options["validate"] = "key"
+                entry_options["validatecommand"] = (
+                    self.root.register(validate_tag_id_entry),
+                    "%P",
+                )
+                entry = ttkb.Entry(self.form_grid, **entry_options)
+            elif var_name == "serial":
                 entry_options["validate"] = "key"
                 entry_options["validatecommand"] = (
                     self.root.register(validate_serial_entry),
@@ -164,20 +176,21 @@ class TagFormFrame:
                 pady=(0, 8),
             )
 
-            # Write button alongside field
-            ttkb.Button(
-                self.form_grid,
-                text="Write",
-                command=lambda name=var_name: self.write_field(name),
-                bootstyle="success",
-                width=7,
-            ).grid(
-                row=row_index * 2 + 1,
-                column=2,
-                sticky="w",
-                padx=(2, 0),
-                pady=(0, 8),
-            )
+            # Write button alongside field (except for Tag ID)
+            if var_name != "tag_id":
+                ttkb.Button(
+                    self.form_grid,
+                    text="Write",
+                    command=lambda name=var_name: self.write_field(name),
+                    bootstyle="success",
+                    width=7,
+                ).grid(
+                    row=row_index * 2 + 1,
+                    column=2,
+                    sticky="w",
+                    padx=(2, 0),
+                    pady=(0, 8),
+                )
 
     def _build_action_buttons(self):
         button_frame = ttkb.Frame(self.form_container)
@@ -227,6 +240,38 @@ class TagFormFrame:
             if widget:
                 widget.configure(foreground=NORMAL_COLOR)
 
+    def _register_pending_request(self, param_id: int, field_label: str, operation: str, cmd_hex: str, conv_type: str, field_name: str):
+        self.request_counter += 1
+        req_id = self.request_counter
+        self.pending_requests[param_id] = {
+            "req_id": req_id,
+            "Name": field_label,
+            "Operation": operation,
+            "Command Sent": cmd_hex,
+            "Conversion": conv_type,
+            "var_name": field_name,
+        }
+        # Schedule 5-second (5000ms) timeout
+        self.root.after(5000, lambda p_id=param_id, r_id=req_id, name=field_label, op=operation: self._handle_request_timeout(p_id, r_id, name, op))
+
+    def _handle_request_timeout(self, param_id: int, req_id: int, field_label: str, operation: str):
+        if param_id in self.pending_requests and self.pending_requests[param_id].get("req_id") == req_id:
+            req_info = self.pending_requests.pop(param_id)
+            log_console = self.get_log_console()
+            write_log(f"UART RX Timeout: No reply from reader within 5 seconds for {field_label}", log_console)
+            
+            log_console.append_json(
+                name=field_label,
+                operation=operation,
+                command_sent=req_info.get("Command Sent", ""),
+                response_received="TIMEOUT",
+                conversion=req_info.get("Conversion", ""),
+                medium="UART",
+            )
+            
+            if callable(self.timeout_cb):
+                self.timeout_cb(field_label)
+
     def read_field(self, field_name: str):
         log_console = self.get_log_console()
 
@@ -234,13 +279,7 @@ class TagFormFrame:
             cmd_hex, conv_type, field_label, param_id = READ_COMMANDS[field_name]
             cmd_bytes = bytes.fromhex(cmd_hex)
             if self.reader.is_connected():
-                self.pending_requests[param_id] = {
-                    "Name": field_label,
-                    "Operation": "Read",
-                    "Command Sent": cmd_hex,
-                    "Conversion": conv_type,
-                    "var_name": field_name,
-                }
+                self._register_pending_request(param_id, field_label, "Read", cmd_hex, conv_type, field_name)
                 self.reader.write_bytes(cmd_bytes)
                 write_log(f"UART TX Read Command ({field_label}): {cmd_hex}", log_console)
             else:
@@ -256,7 +295,7 @@ class TagFormFrame:
                 messagebox.showwarning("Read Field", "This field is empty.")
 
     def read_all_fields(self):
-        """Sequentially transmit Read commands for all fields spaced 300ms apart."""
+        """Sequentially transmit Read commands for all fields spaced 1000ms apart."""
         log_console = self.get_log_console()
 
         if not self.reader.is_connected():
@@ -264,9 +303,9 @@ class TagFormFrame:
             messagebox.showwarning("Read All", "Connect the reader before reading fields.")
             return
 
-        write_log("Starting Read All fields sequence (300ms delay)...", log_console)
+        write_log("Starting Read All fields sequence (1000ms delay)...", log_console)
         commands = list(READ_COMMANDS.items())
-        interval_ms = 200  # 300ms delay between commands
+        interval_ms = 1000  # 1000ms delay between commands
 
         def _send_next(index=0):
             if index >= len(commands):
@@ -276,17 +315,11 @@ class TagFormFrame:
             field_name, (cmd_hex, conv_type, field_label, param_id) = commands[index]
             if self.reader.is_connected():
                 cmd_bytes = bytes.fromhex(cmd_hex)
-                self.pending_requests[param_id] = {
-                    "Name": field_label,
-                    "Operation": "Read",
-                    "Command Sent": cmd_hex,
-                    "Conversion": conv_type,
-                    "var_name": field_name,
-                }
+                self._register_pending_request(param_id, field_label, "Read", cmd_hex, conv_type, field_name)
                 self.reader.write_bytes(cmd_bytes)
                 write_log(f"UART TX Read Command ({field_label}): {cmd_hex}", log_console)
 
-            # Schedule next field request after 300ms
+            # Schedule next field request after 1000ms
             self.root.after(interval_ms, lambda: _send_next(index + 1))
 
         _send_next(0)
@@ -306,13 +339,7 @@ class TagFormFrame:
             
             if self.reader.is_connected():
                 param_id = int(metadata["Field_ID"], 16) if "Field_ID" in metadata else 0
-                self.pending_requests[param_id] = {
-                    "Name": metadata["Name"],
-                    "Operation": "Write",
-                    "Command Sent": frame_hex,
-                    "Conversion": metadata["Conversion"],
-                    "var_name": field_name,
-                }
+                self._register_pending_request(param_id, metadata["Name"], "Write", frame_hex, metadata["Conversion"], field_name)
                 self.reader.write_bytes(frame_bytes)
                 write_log(f"UART TX Write Transmission Frame ({metadata['Name']}): {frame_hex}", log_console)
             else:

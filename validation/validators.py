@@ -1,10 +1,21 @@
 """Validation functions for RFID UI field entries."""
 
+TAG_ID_PLACEHOLDER = "(Alphanumeric: Max 24 Characters)"
 SERIAL_PLACEHOLDER = "(Alphanumeric: Max 16 characters)"
 VIN_PLACEHOLDER = "(Alphanumeric: Max 17 Characters)"
 AXLE_PLACEHOLDER = "(Numeric: 0 to 65535)"
 GVW_PLACEHOLDER = "(Numeric: 0 to 4294967295)"
 REGISTRATION_PLACEHOLDER = "(Alphanumeric: Max 12 Characters)"
+
+
+def is_tag_id_valid(value: str) -> bool:
+    return len(value) <= 24 and value.isalnum()
+
+
+def validate_tag_id_entry(new_value: str) -> bool:
+    if new_value == "" or new_value == TAG_ID_PLACEHOLDER:
+        return True
+    return len(new_value) <= 24 and new_value.isalnum()
 
 
 def is_serial_valid(value: str) -> bool:

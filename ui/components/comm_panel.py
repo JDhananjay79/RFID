@@ -237,6 +237,13 @@ class CommPanelFrame:
 
         self.subtext_label.configure(text=sub, fg="#FCA5A5")
 
+    def show_timeout(self, cmd_name: str = ""):
+        self.accent_bar.configure(bg="#EF4444")
+        self.draw_icon("fail")
+        self.title_label.configure(text="NO RESPONSE", fg="#EF4444")
+        sub = f"No reply from reader within 5 seconds for {cmd_name}." if cmd_name else "No reply from reader within 5 seconds."
+        self.subtext_label.configure(text=sub, fg="#FCA5A5")
+
     def populate_com_ports(self):
         ports = detect_com_ports()
         if not ports:
