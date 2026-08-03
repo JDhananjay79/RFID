@@ -65,10 +65,14 @@ class TagFormFrame:
         self.reset_reader_status_cb = reset_reader_status_cb
         self.timeout_cb = timeout_cb
 
+        self.reader.set_disconnect_callback(self._handle_reader_disconnect)
+
         self.field_vars = {}
         self.entry_widgets = {}
         self.pending_requests = {}  # Maps param_id -> dict of command metadata
         self.request_counter = 0
+        self.vin_polling_active = False
+        self.vin_polling_job = None
 
         self.form_container = tk.LabelFrame(
             parent_frame,
@@ -192,6 +196,9 @@ class TagFormFrame:
                     pady=(0, 8),
                 )
 
+    def _handle_reader_disconnect(self):
+        self._stop_vin_polling()
+
     def _build_action_buttons(self):
         button_frame = ttkb.Frame(self.form_container)
         button_frame.pack(fill="x", pady=(5, 0))
@@ -272,8 +279,60 @@ class TagFormFrame:
             if callable(self.timeout_cb):
                 self.timeout_cb(field_label)
 
+    def _send_vin_read_command(self):
+        log_console = self.get_log_console()
+        cmd_hex, conv_type, field_label, param_id = READ_COMMANDS["vin"]
+        cmd_bytes = bytes.fromhex(cmd_hex)
+
+        if not self.reader.is_connected():
+            self._stop_vin_polling()
+            write_log("VIN polling stopped: reader not connected", log_console)
+            return
+
+        self._register_pending_request(param_id, field_label, "Read", cmd_hex, conv_type, "vin")
+        self.reader.write_bytes(cmd_bytes)
+        write_log(f"UART TX Read Command ({field_label}): {cmd_hex}", log_console)
+
+    def _schedule_vin_poll(self):
+        if not self.vin_polling_active or not self.reader.is_connected():
+            self._stop_vin_polling()
+            return
+
+        if self.vin_polling_job is not None:
+            self.root.after_cancel(self.vin_polling_job)
+
+        self.vin_polling_job = self.root.after(5000, self._send_vin_poll)
+
+    def _send_vin_poll(self):
+        self.vin_polling_job = None
+        if not self.vin_polling_active:
+            return
+
+        self._send_vin_read_command()
+        self._schedule_vin_poll()
+
+    def _start_vin_polling(self):
+        if not self.reader.is_connected():
+            write_log("VIN polling failed: reader not connected", self.get_log_console())
+            messagebox.showwarning("VIN Read", "Connect the reader before starting VIN polling.")
+            return
+
+        self.vin_polling_active = True
+        self._send_vin_read_command()
+        self._schedule_vin_poll()
+
+    def _stop_vin_polling(self):
+        self.vin_polling_active = False
+        if self.vin_polling_job is not None:
+            self.root.after_cancel(self.vin_polling_job)
+            self.vin_polling_job = None
+
     def read_field(self, field_name: str):
         log_console = self.get_log_console()
+
+        if field_name == "vin":
+            self._start_vin_polling()
+            return
 
         if field_name in READ_COMMANDS:
             cmd_hex, conv_type, field_label, param_id = READ_COMMANDS[field_name]
@@ -350,6 +409,8 @@ class TagFormFrame:
             messagebox.showerror("Write Field Error", str(e))
 
     def clear_fields(self):
+        self._stop_vin_polling()
+
         for name, var in self.field_vars.items():
             var.set("")
             if name in PLACEHOLDERS:

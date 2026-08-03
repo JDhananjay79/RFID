@@ -574,5 +574,860 @@
     "Conversion": "hex as it is",
     "Medium of transmission": "UART",
     "Time Stamp": "2026-07-30 18:48:49.409"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-02 22:37:35.799"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "TIMEOUT",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 09:56:21.719"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "24EF0E40E20047014570602170E70110D5F45723",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 09:57:48.491"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "24EF0E40E20047014570602170E70110DA05B823",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 09:57:59.808"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF114100000000000000000000000000000000AF0A23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 09:58:00.687"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342000000000000000000000000000000000000DE0A23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 09:58:01.685"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430000886123",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 09:58:02.695"
+  },
+  {
+    "Name": "Registration No.",
+    "Operation": "Read",
+    "Command Sent": "24110104A17423",
+    "Response Received": "24EF0D44000000000000000000000000777123",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 09:58:03.707"
+  },
+  {
+    "Name": "GVW/GCW",
+    "Operation": "Read",
+    "Command Sent": "24110105B15523",
+    "Response Received": "24EF05450000000023",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 09:58:04.720"
+  },
+  {
+    "Name": "TA Certification",
+    "Operation": "Read",
+    "Command Sent": "24110106813623",
+    "Response Received": "24EF037F0607E2E423",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 09:58:05.667"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "24EF0E40E20047014570602170E70110D4E47623",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:07:23.707"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF114100000000000000000000000000000000AF0A23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:07:31.590"
+  },
+  {
+    "Name": "Trailer VIN",
+    "Operation": "Write",
+    "Command Sent": "24 11 13 29 02 4D 41 54 52 46 30 37 32 30 32 36 35 34 30 30 30 31 CE CE 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:08:04.475"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13424D41545246303732303236353430303031002C8323",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:08:08.423"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13424D41545246303732303236353430303031002C8323",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:08:13.524"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13424D41545246303732303236353430303031002C8323",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:08:18.615"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13424D41545246303732303236353430303031002C8323",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:08:23.552"
+  },
+  {
+    "Name": "Trailer VIN",
+    "Operation": "Write",
+    "Command Sent": "24 11 13 29 02 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 4F BA 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:08:47.026"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342300000000000000000000000000000000000D92A23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:08:53.376"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342300000000000000000000000000000000000D92A23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:08:58.452"
+  },
+  {
+    "Name": "Tag ID",
+    "Operation": "Read",
+    "Command Sent": "24110100E1F023",
+    "Response Received": "24EF0E40E20047014570602170E70110D5F45723",
+    "Conversion": "hex as it is",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:27:35.135"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342300000000000000000000000000000000000D92A23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:27:53.932"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342300000000000000000000000000000000000D92A23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:27:58.969"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 07 29 03 00 00 00 00 02 5A 56 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:52:42.242"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 07 29 03 00 00 00 00 02 5A 56 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:53:00.230"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430003B80223",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:53:03.516"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430003B80223",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:53:06.311"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 07 29 03 00 00 00 00 01 6A 35 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:53:16.152"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430003B80223",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:53:16.731"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 07 29 03 00 00 00 00 01 6A 35 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:53:29.482"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430003B80223",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:53:35.255"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 07 29 03 00 00 00 FF FF 67 1B 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:53:49.141"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430003B80223",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:53:50.753"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 07 29 03 00 00 00 FF FF 67 1B 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:54:20.146"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430003B80223",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:54:23.202"
+  },
+  {
+    "Name": "Registration Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 0E 29 04 32 00 00 00 00 00 00 00 00 00 00 00 FE 18 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:54:32.160"
+  },
+  {
+    "Name": "Registration No.",
+    "Operation": "Read",
+    "Command Sent": "24110104A17423",
+    "Response Received": "24EF0D44320000000000000000000000286B23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:54:34.246"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 03 29 03 22 85 B8 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:56:00.329"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430003B80223",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:56:03.104"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 03 29 03 04 C1 1C 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:57:08.102"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430003B80223",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:57:10.906"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 04 29 03 00 09 88 80 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:57:44.848"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430009194823",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:57:50.135"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 04 29 03 00 02 39 EB 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:58:03.499"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430002A823",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:58:05.654"
+  },
+  {
+    "Name": "Serial Reader Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 12 29 01 41 43 4F 4E 52 46 30 33 31 37 32 30 32 36 30 31 73 5A 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:59:49.343"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF114141434F4E5246303331373230323630317D9823",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 10:59:52.872"
+  },
+  {
+    "Name": "Serial Reader Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 12 29 01 41 43 4F 4E 52 46 30 33 31 37 32 30 32 00 00 00 27 B8 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:00:10.256"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF114141434F4E524630333137323032000000297A23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:00:13.010"
+  },
+  {
+    "Name": "Serial Reader Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 12 29 01 33 34 35 35 34 35 33 34 34 30 33 31 37 32 30 32 06 E7 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:00:31.191"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF114133343535343533343430333137323032082523",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:00:35.551"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430002A823",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:00:41.585"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13423200000000000000000000000000F4080000D57423",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:00:43.736"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13423200000000000000000000000000F4080000D57423",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:00:48.582"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF13423200000000000000000000000000F4080000D57423",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:00:52.362"
+  },
+  {
+    "Name": "Trailer VIN",
+    "Operation": "Write",
+    "Command Sent": "24 11 13 29 02 33 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7E 9C 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:01:27.056"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342330000000000000000000000000000000000D95823",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:01:30.447"
+  },
+  {
+    "Name": "Trailer VIN",
+    "Operation": "Write",
+    "Command Sent": "24 11 13 29 02 31 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 5F 58 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:01:42.966"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342310000000000000000000000000000000000291B23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:01:44.873"
+  },
+  {
+    "Name": "Trailer VIN",
+    "Operation": "Write",
+    "Command Sent": "24 11 13 29 02 30 32 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6A CD 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:03.462"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342310000000000000000000000000000000000291B23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:05.761"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342310000000000000000000000000000000000291B23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:11.200"
+  },
+  {
+    "Name": "Trailer VIN",
+    "Operation": "Write",
+    "Command Sent": "24 11 13 29 02 32 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6E 7E 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:25.864"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342320000000000000000000000000000000000296923",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:27.970"
+  },
+  {
+    "Name": "Registration No.",
+    "Operation": "Read",
+    "Command Sent": "24110104A17423",
+    "Response Received": "24EF0D44320000000000000000000000286B23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:33.434"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342320000000000000000000000000000000000296923",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:36.123"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342320000000000000000000000000000000000296923",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:40.829"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342320000000000000000000000000000000000296923",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:45.760"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342303032000000000000000000000000000000DE5E23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:50.671"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342303032000000000000000000000000000000DE5E23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:03:55.688"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342303032000000000000000000000000000000DE5E23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:04:00.752"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342303032000000000000000000000000000000DE5E23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:04:07.527"
+  },
+  {
+    "Name": "Trailer VIN",
+    "Operation": "Write",
+    "Command Sent": "24 11 13 29 02 30 32 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6A CD 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:04:22.304"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342303200000000000000000000000000000000DAED23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:04:26.496"
+  },
+  {
+    "Name": "VIN",
+    "Operation": "Read",
+    "Command Sent": "24110102C1B223",
+    "Response Received": "24EF1342303200000000000000000000000000000000DAED23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:04:30.424"
+  },
+  {
+    "Name": "GVW/GCW",
+    "Operation": "Read",
+    "Command Sent": "24110105B15523",
+    "Response Received": "24EF0545FFFFFFF51BB623",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:04:40.456"
+  },
+  {
+    "Name": "Trailer Gross Weight",
+    "Operation": "Write",
+    "Command Sent": "24 11 06 29 05 00 00 00 02 70 EF 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:04:50.333"
+  },
+  {
+    "Name": "GVW/GCW",
+    "Operation": "Read",
+    "Command Sent": "24110105B15523",
+    "Response Received": "24EF054500000002037123",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:04:53.212"
+  },
+  {
+    "Name": "Serial Reader Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 12 29 01 32 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 84 BF 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:05:05.160"
+  },
+  {
+    "Name": "Serial Number",
+    "Operation": "Read",
+    "Command Sent": "24110101F1D123",
+    "Response Received": "24EF1141320000000000000000000000000000008A7D23",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:05:07.025"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 04 29 03 00 02 39 EB 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:05:23.178"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430002A823",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:05:25.893"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 06 29 03 00 00 00 02 BD 6A 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:06:28.207"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430002A823",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:06:30.089"
+  },
+  {
+    "Name": "Trailer Gross Weight",
+    "Operation": "Write",
+    "Command Sent": "24 11 06 29 05 00 00 00 02 70 EF 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:08:58.129"
+  },
+  {
+    "Name": "GVW/GCW",
+    "Operation": "Read",
+    "Command Sent": "24110105B15523",
+    "Response Received": "24EF054500000002037123",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:09:03.069"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 06 29 03 00 00 00 02 BD 6A 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:09:12.640"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430002A823",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:09:14.283"
+  },
+  {
+    "Name": "Trailer Gross Weight",
+    "Operation": "Write",
+    "Command Sent": "24 11 06 29 05 00 00 00 02 70 EF 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:12:35.852"
+  },
+  {
+    "Name": "GVW/GCW",
+    "Operation": "Read",
+    "Command Sent": "24110105B15523",
+    "Response Received": "24EF054500000002037123",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:12:38.373"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 04 29 03 00 02 39 EB 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:12:47.242"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430002A823",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:12:48.779"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Write",
+    "Command Sent": "24 11 06 29 03 00 00 00 02 BD 6A 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "decimal",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:13:16.068"
+  },
+  {
+    "Name": "Axle Count",
+    "Operation": "Read",
+    "Command Sent": "24110103D19323",
+    "Response Received": "24EF03430002A823",
+    "Conversion": "numerical",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:13:17.704"
+  },
+  {
+    "Name": "Serial Reader Number",
+    "Operation": "Write",
+    "Command Sent": "24 11 12 29 01 31 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6C F2 23",
+    "Response Received": "TIMEOUT",
+    "Conversion": "alphanumeric",
+    "Medium of transmission": "UART",
+    "Time Stamp": "2026-08-03 11:25:14.434"
   }
 ]
