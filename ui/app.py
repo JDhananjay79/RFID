@@ -166,7 +166,37 @@ class RFIDApp:
                 else:
                     write_log(f"UART RX Ignored (Late Negative Response after timeout for Cmd 0x{failed_cmd:02X})", log_console)
                 return
+            # ------------------------------
+# Positive Write Response
+# ------------------------------
 
+    #         if tag_byte != 0x7F:
+
+    # # Any pending write request?
+    #             for param_id, pending_info in list(self.tag_form_comp.pending_requests.items()):
+
+    #                 if pending_info.get("Operation") == "Write":
+
+    #                     self.tag_form_comp.pending_requests.pop(param_id)
+
+    #                     self.comm_panel_comp.show_pass("PASS")
+
+    #                     write_log(
+    #             f"Write Successful : {pending_info.get('Name','')}",
+    #             log_console,
+    #         )
+
+    #                     log_console.append_json(
+        
+    #                         name=pending_info.get("Name", ""),
+    #                         operation="Write",
+    #                         command_sent=pending_info.get("Command Sent", ""),
+    #                         response_received=frame.hex().upper(),
+    #                         conversion="PASS",
+    #                         medium=medium,
+    #         )
+
+    #         return
             # Positive Response Payload extraction (frame[4:-3] if CRC present, else frame[4:-1])
             data_bytes = frame[4:-3] if len(frame) >= 7 else frame[4:-1]
             payload_hex_spaced = data_bytes.hex(" ").upper()
@@ -255,12 +285,12 @@ class RFIDApp:
                         conversion=conv_type,
                         medium=medium,
                     )
-                else:
-                    # Late response arrived after 5-second timeout -> ignore and preserve NO RESPONSE status
-                    write_log(
-                        f"UART RX Ignored (Late response received after timeout for {field_label}): [Payload: {payload_hex_spaced}]",
-                        log_console,
-                    )
+                # else:
+                #     # Late response arrived after 5-second timeout -> ignore and preserve NO RESPONSE status
+                #     write_log(
+                #         f"UART RX Ignored (Late response received after timeout for {field_label}): [Payload: {payload_hex_spaced}]",
+                #         log_console,
+                #     )
 
         except Exception as e:
             self.comm_panel_comp.show_fail(description=str(e))

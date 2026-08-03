@@ -44,7 +44,7 @@ class LogPanelFrame:
         log_path_entry = ttkb.Entry(
             controls_subframe,
             textvariable=self.log_path_var,
-            width=80,
+            width=70,
             bootstyle="info",
         )
         log_path_entry.pack(side="left", expand=True, padx=(0, 8))
