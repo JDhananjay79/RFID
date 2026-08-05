@@ -240,7 +240,7 @@ class TagFormFrame:
             if widget:
                 widget.configure(foreground=NORMAL_COLOR)
 
-    def _register_pending_request(self, param_id: int, field_label: str, operation: str, cmd_hex: str, conv_type: str, field_name: str):
+    def _register_pending_request(self, param_id: int, field_label: str, operation: str, cmd_hex: str, conv_type: str, field_name: str, timeout_ms: int = 5000):
         self.request_counter += 1
         req_id = self.request_counter
         self.pending_requests[param_id] = {
@@ -251,8 +251,8 @@ class TagFormFrame:
             "Conversion": conv_type,
             "var_name": field_name,
         }
-        # Schedule 5-second (5000ms) timeout
-        self.root.after(5000, lambda p_id=param_id, r_id=req_id, name=field_label, op=operation: self._handle_request_timeout(p_id, r_id, name, op))
+        # Schedule timeout for the request
+        self.root.after(timeout_ms, lambda p_id=param_id, r_id=req_id, name=field_label, op=operation: self._handle_request_timeout(p_id, r_id, name, op))
 
     def _handle_request_timeout(self, param_id: int, req_id: int, field_label: str, operation: str):
         if param_id in self.pending_requests and self.pending_requests[param_id].get("req_id") == req_id:
@@ -303,9 +303,9 @@ class TagFormFrame:
             messagebox.showwarning("Read All", "Connect the reader before reading fields.")
             return
 
-        write_log("Starting Read All fields sequence (1000ms delay)...", log_console)
+        write_log("Starting Read All fields sequence (500ms delay)...", log_console)
         commands = list(READ_COMMANDS.items())
-        interval_ms = 1000  # 1000ms delay between commands
+        interval_ms = 500  # 1000ms delay between commands
 
         def _send_next(index=0):
             if index >= len(commands):
@@ -339,7 +339,7 @@ class TagFormFrame:
             
             if self.reader.is_connected():
                 param_id = int(metadata["Field_ID"], 16) if "Field_ID" in metadata else 0
-                self._register_pending_request(param_id, metadata["Name"], "Write", frame_hex, metadata["Conversion"], field_name)
+                self._register_pending_request(param_id, metadata["Name"], "Write", frame_hex, metadata["Conversion"], field_name, timeout_ms=8000)
                 self.reader.write_bytes(frame_bytes)
                 write_log(f"UART TX Write Transmission Frame ({metadata['Name']}): {frame_hex}", log_console)
             else:
