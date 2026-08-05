@@ -11,8 +11,8 @@ FIELD_SPECS = {
     "serial": {
         "field_id": 0x01,
         "dtype": "string",
-        "data_len": 14,
-        "reserve_len": 2,
+        "data_len": 16,
+        "reserve_len": 0,
         "conversion": "alphanumeric",
         "name": "Serial Reader Number",
     },

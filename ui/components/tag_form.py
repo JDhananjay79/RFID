@@ -303,9 +303,9 @@ class TagFormFrame:
             messagebox.showwarning("Read All", "Connect the reader before reading fields.")
             return
 
-        write_log("Starting Read All fields sequence (1000ms delay)...", log_console)
+        write_log("Starting Read All fields sequence (500ms delay)...", log_console)
         commands = list(READ_COMMANDS.items())
-        interval_ms = 1000  # 1000ms delay between commands
+        interval_ms = 500  # 1000ms delay between commands
 
         def _send_next(index=0):
             if index >= len(commands):

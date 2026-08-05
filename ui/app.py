@@ -167,8 +167,13 @@ class RFIDApp:
                     write_log(f"UART RX Ignored (Late Negative Response after timeout for Cmd 0x{failed_cmd:02X})", log_console)
                 return
 
-            # Positive Response Payload extraction (frame[4:-3] if CRC present, else frame[4:-1])
-            data_bytes = frame[4:-3] if len(frame) >= 7 else frame[4:-1]
+            # Positive Response Payload extraction
+            if tag_byte == 0x40: # for tag id
+                data_bytes = frame[4:-4] if len(frame) >= 7 else frame[4:-1]
+            # elif tag_byte == 0x42: # for VIN
+            #     data_bytes = frame[4:-5] if len(frame) >= 7 else frame[4:-1]
+            else:
+                data_bytes = frame[4:-3] if len(frame) >= 7 else frame[4:-1]
             payload_hex_spaced = data_bytes.hex(" ").upper()
 
             var_name = ""
@@ -198,7 +203,10 @@ class RFIDApp:
                 var_name = "vin"
                 field_label = "VIN"
                 conv_type = "alphanumeric"
-                decoded_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
+                decoded_val = data_bytes.decode("ascii", errors="ignore")
+                decoded_val = decoded_val.rstrip("\x00").rstrip().strip()
+                if len(decoded_val) > 17:
+                    decoded_val = decoded_val[:17]
 
             elif tag_byte == 0x43:  # Axle Count (0x03) -> Numerical
                 param_id = 0x03
@@ -244,7 +252,7 @@ class RFIDApp:
                     self.comm_panel_comp.show_pass(payload_hex_spaced)
 
                     # 3. Log clean text line in console window
-                    write_log(f"UART RX ({field_label}): {decoded_val} [Payload: {payload_hex_spaced}]", log_console)
+                    write_log(f"UART RX ({field_label}): {decoded_val} [Response: {payload_hex_spaced}]", log_console)
 
                     # 4. Save SINGLE completed JSON entry with BOTH Command Sent and Response Received
                     log_console.append_json(
