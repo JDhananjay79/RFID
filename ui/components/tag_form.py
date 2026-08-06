@@ -310,7 +310,7 @@ class TagFormFrame:
         self.clear_pending_requests()
         write_log("Starting Read All fields sequence...", log_console)
         commands = list(READ_COMMANDS.items())
-        interval_ms = 600
+        interval_ms = 1000
 
         def _send_next(index=0):
             if index >= len(commands):
