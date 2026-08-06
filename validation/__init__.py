@@ -15,6 +15,7 @@ from validation.validators import (
     validate_registration_entry,
     is_integer_in_range,
     validate_numeric_range_entry,
+    validate_gvw_decimal_entry
 )
 
 __all__ = [
@@ -34,4 +35,5 @@ __all__ = [
     "validate_registration_entry",
     "is_integer_in_range",
     "validate_numeric_range_entry",
+    "validate_gvw_decimal_entry"
 ]

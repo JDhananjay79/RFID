@@ -3,9 +3,10 @@ import threading
 import time
 import serial
 from serial.tools import list_ports
+from communication.base import BaseCommunicator
 
 
-class SerialReader:
+class SerialReader(BaseCommunicator):
     """Fully asynchronous, non-blocking Threaded UART Serial Port Reader/Writer."""
 
     def __init__(
@@ -42,9 +43,16 @@ class SerialReader:
         parity: str = None,
         stopbits: int = None,
         timeout: float = None,
+        port_or_channel: str = None,
+        baud_or_bitrate: int = None,
     ) -> bool:
         if self.connected:
             return True
+
+        if port_or_channel is not None:
+            port = port_or_channel
+        if baud_or_bitrate is not None:
+            baudrate = baud_or_bitrate
 
         target_port = port if port is not None else self.port
         target_baud = baudrate if baudrate is not None else self.baudrate

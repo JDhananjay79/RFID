@@ -81,9 +81,13 @@ def build_write_transmission_frame(field_name: str, input_value: str) -> tuple[b
         raw = clean_val.encode("ascii", errors="ignore")
         if len(raw) > data_len:
             raw = raw[:data_len]
-        payload = raw.ljust(data_len, b"\x00")
-    elif dtype == "uint":
-        val_int = int(clean_val) if clean_val.isdigit() else 0
+        payload = raw.ljust(data_len, b" ")
+    elif dtype in ("uint", "decimal"):
+        try:
+            val_float = float(clean_val)
+            val_int = int(round(val_float))
+        except ValueError:
+            val_int = 0
         payload = val_int.to_bytes(data_len, "big")
     elif dtype == "hex":
         compact = clean_val.replace(" ", "")

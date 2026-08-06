@@ -4,7 +4,7 @@ TAG_ID_PLACEHOLDER = "(Alphanumeric: Max 24 Characters)"
 SERIAL_PLACEHOLDER = "(Alphanumeric: Max 16 characters)"
 VIN_PLACEHOLDER = "(Alphanumeric: Max 17 Characters)"
 AXLE_PLACEHOLDER = "(Numeric: 0 to 65535)"
-GVW_PLACEHOLDER = "(Numeric: 0 to 4294967295)"
+GVW_PLACEHOLDER = "(Decimal: e.g. 45000.50)"
 REGISTRATION_PLACEHOLDER = "(Alphanumeric: Max 12 Characters)"
 
 
@@ -66,3 +66,15 @@ def validate_numeric_range_entry(new_value: str, max_digits: str | int = 10) -> 
     except (ValueError, TypeError):
         max_d = 10
     return len(new_value) <= max_d and new_value.isdigit()
+
+
+def validate_gvw_decimal_entry(new_value: str, max_digits: int = 12) -> bool:
+    if new_value == "" or new_value == GVW_PLACEHOLDER:
+        return True
+    if len(new_value) > max_digits:
+        return False
+    parts = new_value.split(".")
+    if len(parts) > 2:
+        return False
+    return all(part == "" or part.isdigit() for part in parts)
+

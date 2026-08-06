@@ -1,8 +1,19 @@
 from pathlib import Path
 import ttkbootstrap as ttkb
 
-from config import PORT, BAUDRATE
-from communication import SerialReader
+from config import (
+    PORT,
+    BAUDRATE,
+    CAN_CHANNEL,
+    CAN_BUS_TYPE,
+    CAN_BITRATE,
+    CAN_DEFAULT_TX_ID,
+    CAN_DEFAULT_RX_ID,
+    CAN_IS_EXTENDED_ID,
+    CAN_ID_MAP,
+    ERROR_CODES,
+)
+from communication import SerialReader, CANReader
 from logger import write_log
 from ui.components.header import build_header_frame
 from ui.components.tag_form import TagFormFrame
@@ -24,7 +35,17 @@ class RFIDApp:
         self._configure_styles()
         self._set_app_icon()
 
-        self.reader = SerialReader(PORT, BAUDRATE)
+        self.serial_reader = SerialReader(PORT, BAUDRATE)
+        self.can_reader = CANReader(
+            channel=CAN_CHANNEL,
+            bustype=CAN_BUS_TYPE,
+            bitrate=CAN_BITRATE,
+            default_tx_id=CAN_DEFAULT_TX_ID,
+            default_rx_id=CAN_DEFAULT_RX_ID,
+            is_extended_id=CAN_IS_EXTENDED_ID,
+            id_map=CAN_ID_MAP,
+        )
+        self.reader = self.serial_reader
         self.logging_enabled = False
         self.rx_buffer = bytearray()
 
@@ -51,6 +72,7 @@ class RFIDApp:
             self.reader,
             lambda: self.log_panel_comp.log_console,
             self._on_connection_change,
+            on_medium_change_cb=self._on_medium_change,
         )
 
         # Tag form component
@@ -93,7 +115,24 @@ class RFIDApp:
 
     def _on_connection_change(self, connected: bool):
         if not connected:
+            self.tag_form_comp.clear_pending_requests()
             self.comm_panel_comp.show_disconnected()
+
+    def _on_medium_change(self, medium: str):
+        if self.reader and self.reader.is_connected():
+            self.reader.disconnect()
+
+        self.tag_form_comp.clear_pending_requests()
+        if medium == "CAN":
+            self.reader = self.can_reader
+        else:
+            self.reader = self.serial_reader
+
+        self.comm_panel_comp.reader = self.reader
+        self.tag_form_comp.reader = self.reader
+        self.reader.set_disconnect_callback(self.comm_panel_comp._on_async_disconnect)
+        self.comm_panel_comp.show_disconnected()
+        write_log(f"Switched communication medium to {medium}", self.log_panel_comp.log_console)
 
     def _bind_events(self):
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -147,34 +186,60 @@ class RFIDApp:
 
             tag_byte = frame[3]  # Response Tag / Command ID Byte
 
-            # Negative response check (0x7F when length == 3 or error format)
-            if tag_byte == 0x7F and len(frame) <= 8 and len(frame[4:-3]) <= 2:
+            # Negative response check (0x7F or command error payload format)
+            is_negative = False
+            failed_cmd = 0
+            error_code = 0x01
+
+            if tag_byte == 0x7F:
+                is_negative = True
                 failed_cmd = frame[4] if len(frame) > 4 else 0
                 error_code = frame[5] if len(frame) > 5 else 0x01
+            elif len(frame) <= 9 and len(frame[4:-3]) <= 2:
+                payload_bytes = frame[4:-3] if len(frame) >= 7 else frame[4:-1]
+                if payload_bytes and payload_bytes[0] in ERROR_CODES and payload_bytes[0] != 0:
+                    is_negative = True
+                    error_code = payload_bytes[0]
+                    failed_cmd = frame[3] if frame[3] != 0x29 else (frame[4] if len(frame) > 4 else 0)
+
+            if is_negative:
                 if failed_cmd in self.tag_form_comp.pending_requests:
                     self.tag_form_comp.pending_requests.pop(failed_cmd)
-                    self.comm_panel_comp.show_fail(error_code=error_code)
-                    write_log(f"UART RX Negative Response for Cmd 0x{failed_cmd:02X} (Error 0x{error_code:02X})", log_console)
-                    log_console.append_json(
-                        name=f"Cmd 0x{failed_cmd:02X}",
-                        operation="Negative Response",
-                        command_sent="",
-                        response_received=frame_hex,
-                        conversion="error",
-                        medium=medium,
-                    )
-                else:
-                    write_log(f"UART RX Ignored (Late Negative Response after timeout for Cmd 0x{failed_cmd:02X})", log_console)
+                elif len(self.tag_form_comp.pending_requests) == 1:
+                    failed_cmd = list(self.tag_form_comp.pending_requests.keys())[0]
+                    self.tag_form_comp.pending_requests.pop(failed_cmd)
+
+                self.comm_panel_comp.show_fail(error_code=error_code)
+                write_log(f"UART RX Negative Response (Error 0x{error_code:02X}: {ERROR_CODES.get(error_code, 'Error')})", log_console)
+                log_console.append_json(
+                    name=f"Cmd 0x{failed_cmd:02X}",
+                    operation="Negative Response",
+                    command_sent="",
+                    response_received=frame_hex,
+                    conversion="error",
+                    medium=medium,
+                )
                 return
 
             # Positive Response Payload extraction
-            if tag_byte == 0x40: # for tag id
+            # Check if tag_byte is 0x29 (SET Transmission Command ID response)
+            if tag_byte == 0x29 and len(frame) >= 6:
+                field_id = frame[4]
+                tag_byte = 0x40 + field_id  # Normalize 0x29 to 0x40+field_id tag byte (e.g. 0x42 for VIN)
+                data_bytes = frame[5:-3] if len(frame) >= 8 else frame[5:-1]
+            elif tag_byte == 0x40:  # for tag id
                 data_bytes = frame[4:-4] if len(frame) >= 7 else frame[4:-1]
-            # elif tag_byte == 0x42: # for VIN
-            #     data_bytes = frame[4:-5] if len(frame) >= 7 else frame[4:-1]
             else:
                 data_bytes = frame[4:-3] if len(frame) >= 7 else frame[4:-1]
-            payload_hex_spaced = data_bytes.hex(" ").upper()
+
+            if tag_byte in (0x41, 0x42, 0x44, 0x01, 0x02, 0x04):
+                clean_payload_bytes = data_bytes.rstrip(b"\x00\x20\r\n ")
+                max_len = 17 if tag_byte in (0x42, 0x02) else (16 if tag_byte in (0x41, 0x01) else 12)
+                if len(clean_payload_bytes) > max_len:
+                    clean_payload_bytes = clean_payload_bytes[:max_len]
+                payload_hex_spaced = clean_payload_bytes.hex(" ").upper().strip()
+            else:
+                payload_hex_spaced = data_bytes.hex(" ").upper().strip()
 
             var_name = ""
             field_label = ""
@@ -182,7 +247,7 @@ class RFIDApp:
             decoded_val = ""
             param_id = None
 
-            if tag_byte == 0x40:  # Tag EPC (0x00) -> Hex As-Is
+            if tag_byte in (0x40, 0x00):  # Tag EPC (0x00) -> Hex As-Is
                 param_id = 0x00
                 var_name = "tag_id"
                 field_label = "Tag ID"
@@ -191,24 +256,25 @@ class RFIDApp:
                 if len(decoded_val) > 24:
                     decoded_val = decoded_val[:24]
 
-            elif tag_byte == 0x41:  # Serial Reader Number (0x01) -> Alphanumeric
+            elif tag_byte in (0x41, 0x01):  # Serial Reader Number (0x01) -> Alphanumeric
                 param_id = 0x01
                 var_name = "serial"
                 field_label = "Serial Number"
                 conv_type = "alphanumeric"
-                decoded_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
+                decoded_val = data_bytes.rstrip(b"\x00\x20\r\n ").decode("ascii", errors="ignore")
+                if len(decoded_val) > 16:
+                    decoded_val = decoded_val[:16]
 
-            elif tag_byte == 0x42:  # Trailer VIN (0x02) -> Alphanumeric
+            elif tag_byte in (0x42, 0x02):  # Trailer VIN (0x02) -> Alphanumeric
                 param_id = 0x02
                 var_name = "vin"
                 field_label = "VIN"
                 conv_type = "alphanumeric"
-                decoded_val = data_bytes.decode("ascii", errors="ignore")
-                decoded_val = decoded_val.rstrip("\x00").rstrip().strip()
+                decoded_val = data_bytes.rstrip(b"\x00\x20\r\n ").decode("ascii", errors="ignore")
                 if len(decoded_val) > 17:
                     decoded_val = decoded_val[:17]
 
-            elif tag_byte == 0x43:  # Axle Count (0x03) -> Numerical
+            elif tag_byte in (0x43, 0x03):  # Axle Count (0x03) -> Numerical
                 param_id = 0x03
                 var_name = "axle"
                 field_label = "Axle Count"
@@ -216,22 +282,27 @@ class RFIDApp:
                 num_val = int.from_bytes(data_bytes, byteorder="big") if data_bytes else 0
                 decoded_val = str(num_val)
 
-            elif tag_byte == 0x44:  # Registration Number (0x04) -> Alphanumeric
+            elif tag_byte in (0x44, 0x04):  # Registration Number (0x04) -> Alphanumeric
                 param_id = 0x04
                 var_name = "registration"
                 field_label = "Registration No."
                 conv_type = "alphanumeric"
-                decoded_val = data_bytes.decode("ascii", errors="ignore").rstrip("\x00").strip()
+                decoded_val = data_bytes.rstrip(b"\x00\x20\r\n ").decode("ascii", errors="ignore")
+                if len(decoded_val) > 12:
+                    decoded_val = decoded_val[:12]
 
-            elif tag_byte == 0x45:  # Gross Weight (0x05) -> Decimal
+            elif tag_byte in (0x45, 0x05):  # Gross Weight (0x05) -> Decimal
                 param_id = 0x05
                 var_name = "gvw"
                 field_label = "GVW/GCW"
                 conv_type = "decimal"
-                weight_val = int.from_bytes(data_bytes, byteorder="big") if data_bytes else 0
-                decoded_val = str(weight_val)
+                raw_weight = int.from_bytes(data_bytes, byteorder="big") if data_bytes else 0
+                if raw_weight > 100000 and raw_weight % 100 == 0:
+                    decoded_val = f"{raw_weight / 100.0:.2f}"
+                else:
+                    decoded_val = str(raw_weight)
 
-            elif tag_byte in (0x46, 0x7F):  # Meta Data / TA Cert (0x06) -> Hex As-Is
+            elif tag_byte in (0x46, 0x06):  # Meta Data / TA Cert (0x06) -> Hex As-Is
                 param_id = 0x06
                 var_name = "cert"
                 field_label = "TA Certification"

@@ -10,14 +10,11 @@ from validation import (
     GVW_PLACEHOLDER,
     REGISTRATION_PLACEHOLDER,
     validate_tag_id_entry,
-    is_serial_valid,
     validate_serial_entry,
-    is_vin_valid,
     validate_vin_entry,
-    is_registration_valid,
     validate_registration_entry,
-    is_integer_in_range,
     validate_numeric_range_entry,
+    validate_gvw_decimal_entry
 )
 from logger import write_log
 from communication.protocol import build_write_transmission_frame
@@ -143,9 +140,8 @@ class TagFormFrame:
             elif var_name == "gvw":
                 entry_options["validate"] = "key"
                 entry_options["validatecommand"] = (
-                    self.root.register(validate_numeric_range_entry),
+                    self.root.register(validate_gvw_decimal_entry),
                     "%P",
-                    10,
                 )
                 entry = ttkb.Entry(self.form_grid, **entry_options)
             else:
@@ -254,11 +250,17 @@ class TagFormFrame:
         # Schedule 5-second (5000ms) timeout
         self.root.after(5000, lambda p_id=param_id, r_id=req_id, name=field_label, op=operation: self._handle_request_timeout(p_id, r_id, name, op))
 
+    def _get_medium_name(self) -> str:
+        if hasattr(self.reader, "bustype") or "CAN" in self.reader.__class__.__name__.upper():
+            return "CAN"
+        return "UART"
+
     def _handle_request_timeout(self, param_id: int, req_id: int, field_label: str, operation: str):
         if param_id in self.pending_requests and self.pending_requests[param_id].get("req_id") == req_id:
             req_info = self.pending_requests.pop(param_id)
             log_console = self.get_log_console()
-            write_log(f"UART RX Timeout: No reply from reader within 5 seconds for {field_label}", log_console)
+            medium_name = self._get_medium_name()
+            write_log(f"{medium_name} RX Timeout: No reply from reader within 5 seconds for {field_label}", log_console)
             
             log_console.append_json(
                 name=field_label,
@@ -266,7 +268,7 @@ class TagFormFrame:
                 command_sent=req_info.get("Command Sent", ""),
                 response_received="TIMEOUT",
                 conversion=req_info.get("Conversion", ""),
-                medium="UART",
+                medium=medium_name,
             )
             
             if callable(self.timeout_cb):
@@ -274,6 +276,7 @@ class TagFormFrame:
 
     def read_field(self, field_name: str):
         log_console = self.get_log_console()
+        medium_name = self._get_medium_name()
 
         if field_name in READ_COMMANDS:
             cmd_hex, conv_type, field_label, param_id = READ_COMMANDS[field_name]
@@ -281,7 +284,7 @@ class TagFormFrame:
             if self.reader.is_connected():
                 self._register_pending_request(param_id, field_label, "Read", cmd_hex, conv_type, field_name)
                 self.reader.write_bytes(cmd_bytes)
-                write_log(f"UART TX Read Command ({field_label}): {cmd_hex}", log_console)
+                write_log(f"{medium_name} TX Read Command ({field_label}): {cmd_hex}", log_console)
             else:
                 write_log(f"Read command failed for {field_name}: reader not connected", log_console)
                 messagebox.showwarning("Read Field", "Connect the reader before reading.")
@@ -295,17 +298,19 @@ class TagFormFrame:
                 messagebox.showwarning("Read Field", "This field is empty.")
 
     def read_all_fields(self):
-        """Sequentially transmit Read commands for all fields spaced 1000ms apart."""
+        """Sequentially transmit Read commands for all fields spaced 600ms apart."""
         log_console = self.get_log_console()
+        medium_name = self._get_medium_name()
 
         if not self.reader.is_connected():
             write_log("Read All failed: reader not connected", log_console)
             messagebox.showwarning("Read All", "Connect the reader before reading fields.")
             return
 
-        write_log("Starting Read All fields sequence (500ms delay)...", log_console)
+        self.clear_pending_requests()
+        write_log("Starting Read All fields sequence...", log_console)
         commands = list(READ_COMMANDS.items())
-        interval_ms = 500  # 1000ms delay between commands
+        interval_ms = 600
 
         def _send_next(index=0):
             if index >= len(commands):
@@ -317,9 +322,8 @@ class TagFormFrame:
                 cmd_bytes = bytes.fromhex(cmd_hex)
                 self._register_pending_request(param_id, field_label, "Read", cmd_hex, conv_type, field_name)
                 self.reader.write_bytes(cmd_bytes)
-                write_log(f"UART TX Read Command ({field_label}): {cmd_hex}", log_console)
+                write_log(f"{medium_name} TX Read Command ({field_label}): {cmd_hex}", log_console)
 
-            # Schedule next field request after 1000ms
             self.root.after(interval_ms, lambda: _send_next(index + 1))
 
         _send_next(0)
@@ -327,6 +331,7 @@ class TagFormFrame:
     def write_field(self, field_name: str):
         log_console = self.get_log_console()
         val = self.get_field_value(field_name)
+        medium_name = self._get_medium_name()
 
         if not val:
             write_log(f"Write {field_name} failed: field is empty", log_console)
@@ -341,7 +346,7 @@ class TagFormFrame:
                 param_id = int(metadata["Field_ID"], 16) if "Field_ID" in metadata else 0
                 self._register_pending_request(param_id, metadata["Name"], "Write", frame_hex, metadata["Conversion"], field_name)
                 self.reader.write_bytes(frame_bytes)
-                write_log(f"UART TX Write Transmission Frame ({metadata['Name']}): {frame_hex}", log_console)
+                write_log(f"{medium_name} TX Write Transmission Frame ({metadata['Name']}): {frame_hex}", log_console)
             else:
                 write_log(f"Write command failed for {field_name}: reader not connected", log_console)
                 messagebox.showwarning("Write Field", "Connect the reader before writing.")
@@ -349,7 +354,12 @@ class TagFormFrame:
             write_log(f"Write field error: {e}", log_console)
             messagebox.showerror("Write Field Error", str(e))
 
+    def clear_pending_requests(self):
+        """Immediately clear pending request tracking (e.g. on disconnect or medium change)."""
+        self.pending_requests.clear()
+
     def clear_fields(self):
+        self.clear_pending_requests()
         for name, var in self.field_vars.items():
             var.set("")
             if name in PLACEHOLDERS:
