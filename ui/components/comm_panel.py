@@ -366,9 +366,10 @@ class CommPanelFrame:
         self.accent_bar.configure(bg="#EF4444")
         self.draw_icon("fail")
         self.title_label.configure(text="FAIL", fg="#EF4444")
-        
-        if error_code is not None and error_code in ERROR_CODES:
-            sub = f"Error 0x{error_code:02X}: {ERROR_CODES[error_code]}"
+
+        if error_code is not None:
+            err_desc = ERROR_CODES.get(error_code, f"Unknown Error Code 0x{error_code:02X}")
+            sub = f"Error 0x{error_code:02X}: {err_desc}"
         elif description:
             sub = f"Failure: {description}"
         else:
